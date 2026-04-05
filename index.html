@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MIST Election Portal</title>
+  <link rel="icon" type="image/png" href="assets/mist-logo.png"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2f37a6;
+      --primary-dark: #1d2474;
+      --primary-light: #e8ebff;
+      --success: #3cad27;
+      --success-light: #ebfae8;
+      --danger: #b83232;
+      --danger-light: #fef2f2;
+      --warning: #9f7a1d;
+      --warning-light: #fff9df;
+      --gray-50: #f6f7f9;
+      --gray-100: #edf0f3;
+      --gray-200: #dde3ea;
+      --gray-300: #c4ceda;
+      --gray-500: #5d6c80;
+      --gray-700: #2c3b4d;
+      --gray-800: #1e2b3a;
+      --gray-900: #101a27;
+      --mist-gold: #f0ef00;
+      --mist-gold-soft: #fffec7;
+      --mist-navy: #2f37a6;
+      --mist-green: #3cad27;
+      --mist-sky: #3aa3d3;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+      --shadow-lg: 0 20px 45px rgba(13, 39, 66, .2);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(240,239,0,.18), transparent 42%),
+        radial-gradient(circle at 90% 80%, rgba(60,173,39,.18), transparent 35%),
+        linear-gradient(150deg, #f9fbff 0%, #f0f4ff 50%, #eef7ee 100%);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(90deg, #1d2474 0%, #2f37a6 62%, #3cad27 100%);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 8px 20px rgba(29, 36, 116, .28);
+    }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: white; letter-spacing: .2px; }
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--mist-gold), #d9d83f);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 18px rgba(240,239,0,.35);
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,.35);
+      padding: 2px;
+    }
+    .mist-logo-small {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: 50% 100%;
+      display: block;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+    .mist-logo-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      color: #1d232d;
+      font-weight: 800;
+      font-size: .95rem;
+      letter-spacing: .6px;
+      background: radial-gradient(circle at 30% 30%, #fffec7, #f0ef00);
+    }
+    .nav-user { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: #e8eef6; }
+    .btn-logout { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); padding: 6px 14px; border-radius: 6px; cursor: pointer; color: white; font-size: 0.85rem; transition: all .2s; }
+    .btn-logout:hover { background: rgba(255,255,255,.2); }
+
+    /* MAIN */
+    main { max-width: 1200px; margin: 0 auto; padding: 34px 20px 50px; }
+
+    /* AUTH SECTION */
+    #auth-section { max-width: 1160px; margin: 26px auto 42px; }
+    .landing-shell {
+      display: grid;
+      grid-template-columns: 1.25fr .95fr;
+      gap: 24px;
+      align-items: stretch;
+      animation: fadeSlide .6s ease both;
+    }
+    .landing-hero {
+      background:
+        linear-gradient(160deg, rgba(29,36,116,.94), rgba(47,55,166,.92)),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.02), rgba(255,255,255,.02) 10px, rgba(255,255,255,.04) 10px, rgba(255,255,255,.04) 20px);
+      color: white;
+      border-radius: 22px;
+      padding: 40px;
+      box-shadow: 0 20px 45px rgba(29, 36, 116, .28);
+      border: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .landing-hero > * {
+      position: relative;
+      z-index: 2;
+    }
+    .hero-logo-wrap {
+      position: absolute;
+      right: 20px;
+      bottom: 18px;
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      border: 3px solid rgba(240,239,0,.55);
+      box-shadow: 0 18px 30px rgba(0,0,0,.25);
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      animation: floatSeal 3.2s ease-in-out infinite;
+      padding: 5px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .hero-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: 50% 100%;
+      display: block;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+    .hero-logo-wrap .mist-logo-fallback {
+      width: 100%;
+      height: 100%;
+      font-size: 1.6rem;
+      color: #1a2330;
+      background: radial-gradient(circle at 30% 30%, #f7deab, #cf9f47);
+    }
+    .landing-hero::after {
+      content: '';
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(240,239,0,.35), rgba(240,239,0,0));
+      right: -80px;
+      top: -80px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .mist-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .75rem;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: #fffec7;
+      background: rgba(240,239,0,.14);
+      border: 1px solid rgba(240,239,0,.38);
+      border-radius: 999px;
+      padding: 6px 12px;
+      margin-bottom: 16px;
+      animation: pulseGlow 2.6s ease-in-out infinite;
+    }
+    .hero-title {
+      font-size: clamp(1.7rem, 3.2vw, 2.55rem);
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: .2px;
+      max-width: 640px;
+      margin-bottom: 14px;
+    }
+    .hero-title span { color: #f0ef00; }
+    .hero-sub {
+      max-width: 650px;
+      color: #d9e4f0;
+      font-size: .98rem;
+      line-height: 1.75;
+      margin-bottom: 26px;
+    }
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+    .quick-btn {
+      border: 1px solid rgba(255,255,255,.24);
+      background: rgba(255,255,255,.08);
+      color: white;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+      font-weight: 600;
+      font-size: .88rem;
+    }
+    .quick-btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.45);
+      background: rgba(255,255,255,.16);
+    }
+    .quick-btn:focus-visible {
+      outline: 3px solid #fff271;
+      outline-offset: 2px;
+    }
+    .hero-highlights {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .hero-card {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 12px;
+      padding: 12px;
+      backdrop-filter: blur(4px);
+      transition: transform .25s ease, background .25s ease;
+    }
+    .hero-card:hover { transform: translateY(-2px); background: rgba(255,255,255,.13); }
+    .hero-card h4 { font-size: .78rem; color: #fff271; margin-bottom: 5px; letter-spacing: .3px; }
+    .hero-card p { font-size: .78rem; color: #d8e3ee; line-height: 1.45; }
+
+    .auth-card {
+      background: rgba(255,255,255,.88);
+      border-radius: 22px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.7);
+      backdrop-filter: blur(8px);
+      position: relative;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--mist-gold), var(--mist-sky), var(--mist-green));
+    }
+    .auth-tabs { display: flex; border-bottom: 1px solid var(--gray-200); }
+    .auth-tab { flex: 1; padding: 17px; text-align: center; cursor: pointer; font-weight: 700; font-size: 0.93rem; color: var(--gray-500); border-bottom: 3px solid transparent; transition: all .2s; letter-spacing: .2px; }
+    .auth-tab.active { color: var(--primary); border-bottom-color: var(--mist-gold); background: linear-gradient(180deg, rgba(240,239,0,.2), rgba(240,239,0,0)); }
+    .auth-tab:focus-visible {
+      outline: 3px solid rgba(47,55,166,.35);
+      outline-offset: -2px;
+    }
+    .auth-body { padding: 28px; animation: authFade .24s ease; }
+    .auth-title { font-size: 1.2rem; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+    .auth-sub { font-size: 0.85rem; color: var(--gray-500); margin-bottom: 22px; }
+    .auth-note {
+      font-size: .78rem;
+      color: var(--gray-500);
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(232,235,255,.85), rgba(255,249,223,.85));
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+    }
+
+    /* FORMS */
+    .form-grid { display: grid; gap: 14px; }
+    .form-grid.two-col { grid-template-columns: 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.8rem; font-weight: 600; color: var(--gray-700); text-transform: uppercase; letter-spacing: .4px; }
+    input, select, textarea { border: 1px solid var(--gray-300); border-radius: 8px; padding: 10px 12px; font-size: 0.92rem; color: var(--gray-800); background: white; width: 100%; transition: border .2s, box-shadow .2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(47,55,166,.14); }
+    .hint { font-size: 0.75rem; color: var(--gray-500); }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrap input,
+    .input-wrap select {
+      padding-left: 38px;
+      padding-right: 40px;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--gray-500);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .2px;
+      pointer-events: none;
+      min-width: 18px;
+      text-align: center;
+    }
+    .password-toggle {
+      position: absolute;
+      right: 9px;
+      border: none;
+      background: transparent;
+      color: var(--gray-500);
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 6px;
+    }
+    .password-toggle:hover {
+      color: var(--primary);
+      background: rgba(47,55,166,.08);
+    }
+    .password-toggle:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+    .auth-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .auth-foot {
+      font-size: .76rem;
+      color: var(--gray-500);
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: all .2s; }
+    .btn-primary { background: linear-gradient(130deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 10px 20px rgba(47,55,166,.33); }
+    .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-outline { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+    .btn-outline:hover { background: var(--gray-50); }
+    .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn:focus-visible {
+      outline: 3px solid rgba(47,55,166,.35);
+      outline-offset: 2px;
+    }
+
+    /* ALERTS */
+    .alert { padding: 12px 16px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 16px; }
+    .alert-success { background: var(--success-light); color: var(--success); border: 1px solid #a7f3d0; }
+    .alert-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #fca5a5; }
+    .alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; }
+    .alert-warning { background: var(--warning-light); color: var(--warning); border: 1px solid #fcd34d; }
+
+    /* PORTAL */
+    #portal-section { display: none; }
+    .portal-header { margin-bottom: 28px; }
+    .portal-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--gray-900); }
+    .portal-header p { color: var(--gray-500); margin-top: 4px; }
+
+    /* TABS */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 2px solid var(--gray-200); margin-bottom: 24px; }
+    .tab-btn { padding: 10px 18px; font-weight: 600; font-size: 0.9rem; color: var(--gray-500); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* BALLOT CARDS */
+    .ballots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+    .ballot-card { background: white; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid var(--gray-100); overflow: hidden; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+    .ballot-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--mist-navy), var(--mist-sky), var(--mist-green)); z-index: 1; }
+    .ballot-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,.12); transform: translateY(-4px); }
+    .ballot-card-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--gray-100); }
+    .ballot-org { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--primary); margin-bottom: 6px; }
+    .ballot-title { font-size: 1.15rem; font-weight: 700; color: var(--gray-900); line-height: 1.4; }
+    .ballot-desc { font-size: 0.85rem; color: var(--gray-600); margin-top: 6px; line-height: 1.5; }
+    .ballot-card-body { padding: 16px 24px; }
+    .ballot-meta { display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: var(--gray-600); }
+    .ballot-meta span { display: flex; align-items: center; gap: 6px; }
+    .ballot-card-footer { padding: 16px 24px; border-top: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* STATUS BADGES */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+    .badge-active { background: #ebfae8; color: #2f7a1f; }
+    .badge-upcoming { background: #e8ebff; color: #2b2e95; }
+    .badge-closed { background: var(--gray-100); color: var(--gray-500); }
+    .badge-draft { background: #fff9df; color: #8a6518; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+    /* VOTE MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .25s; backdrop-filter: blur(2px); }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: white; border-radius: 20px; width: 100%; max-width: 760px; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,.25); transform: translateY(30px); transition: transform .25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header { padding: 28px 32px 24px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: flex-start; justify-content: space-between; position: sticky; top: 0; background: linear-gradient(180deg, white 95%, rgba(255,255,255,0)); z-index: 10; }
+    .modal-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); }
+    .modal-close { background: none; border: none; cursor: pointer; color: var(--gray-500); font-size: 1.4rem; padding: 4px 8px; border-radius: 8px; transition: all .2s; }
+    .modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
+    .modal-close:focus-visible {
+      outline: 3px solid rgba(47,55,166,.35);
+      outline-offset: 2px;
+    }
+    .modal-body { padding: 28px 32px; }
+
+    /* RANK SECTION */
+    .rank-section { margin-bottom: 32px; }
+    .rank-section:last-child { margin-bottom: 0; }
+    .rank-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--gray-100); }
+    .rank-name { font-size: 1.1rem; font-weight: 700; color: var(--gray-900); letter-spacing: .3px; }
+    .voted-badge { font-size: 0.75rem; background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: var(--success); padding: 4px 12px; border-radius: 20px; font-weight: 700; border: 1px solid #a7f3d0; text-transform: uppercase; letter-spacing: .4px; }
+    .candidates-list { display: flex; flex-direction: column; gap: 14px; }
+    .candidate-card { border: 2px solid var(--gray-200); border-radius: 14px; padding: 16px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 14px; background: white; }
+    .candidate-card:hover { border-color: var(--primary); background: linear-gradient(135deg, rgba(47,55,166,.08), rgba(58,163,211,.08)); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.08); }
+    .candidate-card.selected { border-color: var(--primary); background: linear-gradient(135deg, var(--primary-light), rgba(69,151,233,.12)); }
+    .candidate-card.disabled { opacity: .4; cursor: not-allowed; }
+    .candidate-card.voted { border-color: var(--success); background: linear-gradient(135deg, var(--success-light), rgba(60,173,39,.12)); }
+    .cand-photo { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; overflow: hidden; border: 3px solid var(--gray-200); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0f4ff, #eff6ff); font-weight: 700; font-size: 1.2rem; color: var(--primary); }
+    .candidate-card:hover .cand-photo { border-color: var(--primary); }
+    .candidate-card.selected .cand-photo { border-color: var(--primary); }
+    .cand-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .cand-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .cand-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; margin-left: 8px; }
+    .cand-details-btn {
+      border: 1px solid var(--gray-300);
+      background: white;
+      color: var(--gray-700);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .cand-details-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .cand-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
+    .cand-id { font-size: 0.78rem; color: var(--gray-500); font-weight: 600; }
+    .cand-dept { font-size: 0.78rem; color: var(--gray-600); }
+    .cand-bio { font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; font-style: italic; line-height: 1.4; }
+    .radio-circle { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--gray-300); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; background: white; }
+    .candidate-card.selected .radio-circle, .candidate-card.voted .radio-circle { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 0 4px rgba(47,55,166,.15); }
+    .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: white; display: none; }
+    .candidate-card.selected .radio-dot, .candidate-card.voted .radio-dot { display: block; }
+    .vote-rank-btn { margin-top: 14px; }
+
+    .details-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 260;
+      background: rgba(0,0,0,.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .details-modal-overlay.open { display: flex; }
+    .details-modal-card {
+      width: min(520px, 96vw);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 22px 50px rgba(0,0,0,.25);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      animation: authFade .2s ease;
+    }
+    .details-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--gray-200);
+      background: linear-gradient(90deg, rgba(47,55,166,.05), rgba(60,173,39,.05));
+    }
+    .details-modal-title { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+    .details-modal-close { border: none; background: none; font-size: 1.2rem; color: var(--gray-500); cursor: pointer; border-radius: 6px; padding: 2px 8px; }
+    .details-modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
+    .details-modal-body { padding: 18px; display: grid; gap: 14px; }
+    .details-top { display: flex; align-items: center; gap: 12px; }
+    .details-photo { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gray-200); display:flex; align-items:center; justify-content:center; background: var(--primary-light); color: var(--primary); font-weight: 800; }
+    .details-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .details-name { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
+    .details-sub { font-size: .82rem; color: var(--gray-500); }
+    .details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .details-item { border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px; background: var(--gray-50); }
+    .details-label { font-size: .72rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 2px; }
+    .details-value { font-size: .86rem; font-weight: 600; color: var(--gray-800); word-break: break-word; }
+
+    /* RESULTS */
+    .result-rank { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
+    .result-rank-header { padding: 16px 20px; background: linear-gradient(90deg, rgba(47,55,166,.04), rgba(60,173,39,.04)); border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+    .result-rank-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
+    .result-total { font-size: 0.82rem; color: var(--gray-500); background: rgba(0,0,0,.04); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+    .result-winner { padding: 18px 20px; background: linear-gradient(135deg, rgba(60,173,39,.1), rgba(58,163,211,.05)); border-bottom: 2px solid #a7f3d0; display: flex; align-items: center; gap: 16px; }
+    .result-winner-photo { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid var(--success); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ecfdf5, #d1fae5); font-weight: 700; font-size: 1rem; color: var(--success); flex-shrink: 0; }
+    .result-winner-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .result-winner-info { flex: 1; }
+    .winner-crown { font-size: 1.6rem; display: inline-block; margin-right: 4px; }
+    .winner-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
+    .winner-votes { font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 2px; }
+    .result-candidates { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .result-cand { display: grid; align-items: center; gap: 12px; grid-template-columns: 60px 1fr 60px; }
+    .result-cand-photo { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gray-300); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-light), #eff6ff); font-weight: 700; font-size: 0.9rem; color: var(--primary); flex-shrink: 0; }
+    .result-cand-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .result-cand.winner-row .result-cand-photo { border-color: var(--success); background: linear-gradient(135deg, var(--success-light), #d1fae5); color: var(--success); }
+    .result-cand-main { min-width: 0; display: grid; gap: 6px; }
+    .result-cand-name { font-size: 0.85rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .result-cand-actions { display: flex; align-items: center; gap: 8px; }
+    .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width .6s ease; }
+    .result-cand.winner-row .progress-fill { background: var(--success); }
+    .result-pct { font-size: 0.82rem; font-weight: 700; color: var(--gray-700); text-align: right; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray-500); }
+    .empty-state svg { width: 48px; height: 48px; margin: 0 auto 16px; opacity: .4; }
+    .empty-state h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; color: var(--gray-700); }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* LOADING */
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-overlay { display: flex; align-items: center; justify-content: center; padding: 60px; }
+    .loading-overlay .spinner { width: 32px; height: 32px; border-color: var(--gray-300); border-top-color: var(--primary); }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .landing-shell { grid-template-columns: 1fr; }
+      .landing-hero { padding: 28px 24px; }
+      .hero-highlights { grid-template-columns: 1fr; }
+      .hero-logo-wrap { width: 96px; height: 96px; right: 16px; bottom: 16px; }
+    }
+
+    @media (max-width: 640px) {
+      .form-grid.two-col { grid-template-columns: 1fr; }
+      .result-cand { grid-template-columns: 110px 1fr 50px; }
+      .auth-body { padding: 22px; }
+    }
+
+    .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+
+    /* Strong keyboard visibility on form controls */
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible {
+      outline: 3px solid rgba(47,55,166,.28);
+      outline-offset: 1px;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 rgba(240,239,0,0); }
+      50% { box-shadow: 0 0 0 8px rgba(240,239,0,.14); }
+    }
+
+    @keyframes floatSeal {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes authFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">
+        <img src="assets/mist-logo.png" alt="MIST Logo" class="mist-logo-small" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+        <span class="mist-logo-fallback">M</span>
+      </div>
+      MIST Vote
+    </div>
+    <div class="nav-user" id="nav-user" style="display:none">
+      <span id="nav-student-name">Student</span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- AUTH SECTION -->
+<div id="auth-section">
+  <div class="landing-shell">
+    <section class="landing-hero">
+      <span class="mist-pill">Military Institute of Science and Technology</span>
+      <h1 class="hero-title">Secure Digital Election Platform for <span>MIST</span> Campus Communities</h1>
+      <p class="hero-sub">A trusted portal for transparent student elections. Register with your official student credentials, vote during active windows, and review verified outcomes with confidence.</p>
+
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="switchAuthTab('login');document.getElementById('login-id').focus();">Go to Login</button>
+        <button class="quick-btn" onclick="switchAuthTab('register');document.getElementById('reg-id').focus();">Go to Register</button>
+      </div>
+
+      <div class="hero-highlights">
+        <article class="hero-card">
+          <h4>Identity Verification</h4>
+          <p>Student IDs are validated against approved institutional records before account access.</p>
+        </article>
+        <article class="hero-card">
+          <h4>Election Integrity</h4>
+          <p>One student, one vote per rank with timeline-based controls and server-side safeguards.</p>
+        </article>
+        <article class="hero-card">
+          <h4>Results Transparency</h4>
+          <p>Ballot outcomes are published in a clean, auditable view after election closure.</p>
+        </article>
+      </div>
+
+      <div class="hero-logo-wrap" aria-hidden="true">
+        <img src="assets/mist-logo.png" alt="MIST Emblem" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+        <span class="mist-logo-fallback">MIST</span>
+      </div>
+    </section>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')" role="button" tabindex="0" aria-label="Open login form">Login</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')" role="button" tabindex="0" aria-label="Open register form">Register</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="auth-body" id="login-form">
+        <p class="auth-title">Welcome back</p>
+        <p class="auth-sub">Sign in with your Student ID</p>
+        <p class="auth-note">Use your registered Student ID and password to access the election portal.</p>
+        <div id="login-alert" role="status" aria-live="polite"></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Student ID</label>
+            <div class="input-wrap">
+              <span class="input-icon">ID</span>
+              <input type="text" id="login-id" placeholder="e.g. CSE2101001" autocomplete="username"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">PW</span>
+              <input type="password" id="login-pass" placeholder="Your password" autocomplete="current-password"/>
+              <button type="button" class="password-toggle" onclick="togglePassword('login-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <button class="btn btn-primary btn-full" onclick="login()" id="login-btn">Sign In</button>
+            <p class="auth-foot">New here? Click Register to create your account.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="auth-body" id="register-form" style="display:none">
+        <p class="auth-title">Create account</p>
+        <p class="auth-sub">Only enrolled students with a valid Student ID can register</p>
+        <p class="auth-note">Fill all fields carefully. Your student record must match the seeded university list.</p>
+        <div id="register-alert" role="status" aria-live="polite"></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Student ID <span style="color:var(--danger)">*</span></label>
+            <div class="input-wrap">
+              <span class="input-icon">ID</span>
+              <input type="text" id="reg-id" placeholder="e.g. CSE2101001"/>
+            </div>
+            <span class="hint">Must match university records exactly</span>
+          </div>
+          <div class="form-group">
+            <label>Full Name</label>
+            <div class="input-wrap">
+              <span class="input-icon">N</span>
+              <input type="text" id="reg-name" placeholder="Your full name"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <div class="input-wrap">
+              <span class="input-icon">@</span>
+              <input type="email" id="reg-email" placeholder="your@email.com"/>
+            </div>
+          </div>
+          <div class="form-grid two-col">
+            <div class="form-group">
+              <label>Department</label>
+              <div class="input-wrap">
+                <span class="input-icon">D</span>
+                <select id="reg-dept">
+                  <option value="">Select</option>
+                  <option>CSE</option><option>EEE</option><option>BBA</option>
+                  <option>LAW</option><option>ENG</option><option>PHY</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Batch</label>
+              <div class="input-wrap">
+                <span class="input-icon">B</span>
+                <input type="text" id="reg-batch" placeholder="e.g. 21"/>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">PW</span>
+              <input type="password" id="reg-pass" placeholder="Min 6 characters"/>
+              <button type="button" class="password-toggle" onclick="togglePassword('reg-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">PW</span>
+              <input type="password" id="reg-confirm" placeholder="Repeat password"/>
+              <button type="button" class="password-toggle" onclick="togglePassword('reg-confirm', this)" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <button class="btn btn-primary btn-full" onclick="register()" id="reg-btn">Create Account</button>
+            <p class="auth-foot">Already registered? Switch to Login and continue.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PORTAL SECTION -->
+<div id="portal-section">
+  <div class="portal-header">
+    <h1>Election Portal</h1>
+    <p>View active elections, cast your vote, and see results</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('active')">Active Elections</button>
+    <button class="tab-btn" onclick="switchTab('upcoming')">Upcoming</button>
+    <button class="tab-btn" onclick="switchTab('closed')">Past Results</button>
+  </div>
+
+  <div id="ballots-container">
+    <div class="loading-overlay"><div class="spinner"></div></div>
+  </div>
+</div>
+
+</main>
+
+<!-- VOTE MODAL -->
+<div class="modal-overlay" id="vote-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="modal-title">Cast Your Vote</h2>
+        <div id="modal-org" style="font-size:0.82rem;color:var(--gray-500);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- RESULTS MODAL -->
+<div class="modal-overlay" id="results-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="results-modal-title">Election Results</h2>
+        <div id="results-modal-org" style="font-size:0.82rem;color:var(--gray-500);margin-top:2px"></div>
+      </div>
+      <button class="modal-close" onclick="closeResultsModal()">✕</button>
+    </div>
+    <div class="modal-body" id="results-modal-body"></div>
+  </div>
+</div>
+
+<!-- CANDIDATE DETAILS MODAL -->
+<div class="details-modal-overlay" id="candidate-details-modal">
+  <div class="details-modal-card">
+    <div class="details-modal-head">
+      <span class="details-modal-title">Candidate Details</span>
+      <button class="details-modal-close" onclick="closeCandidateDetails()">✕</button>
+    </div>
+    <div class="details-modal-body" id="candidate-details-body"></div>
+  </div>
+</div>
+
+<script>
+  const API = '';
+  let token = localStorage.getItem('uvToken');
+  let currentStudent = null;
+  let currentBallot = null;
+  let currentResults = [];
+  let currentSelections = {};
+  let currentTab = 'active';
+  let allBallots = [];
+
+  // ── INIT ──────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    if (token) verifyAndLoad();
+    else showAuth();
+
+    document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+    document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+  });
+
+  async function verifyAndLoad() {
+    try {
+      const res = await apiFetch('/api/auth/me');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      currentStudent = data.student;
+      showPortal();
+    } catch {
+      token = null;
+      localStorage.removeItem('uvToken');
+      showAuth();
+    }
+  }
+
+  // ── AUTH ──────────────────────────────────────────
+  function showAuth() {
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('portal-section').style.display = 'none';
+    document.getElementById('nav-user').style.display = 'none';
+  }
+
+  function showPortal() {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('portal-section').style.display = 'block';
+    document.getElementById('nav-user').style.display = 'flex';
+    document.getElementById('nav-student-name').textContent = currentStudent.name + ' (' + currentStudent.studentId + ')';
+    loadBallots();
+  }
+
+  function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+    document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
+    document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
+  }
+
+  async function login() {
+    const btn = document.getElementById('login-btn');
+    const alertEl = document.getElementById('login-alert');
+    const studentId = document.getElementById('login-id').value.trim();
+    const password = document.getElementById('login-pass').value;
+
+    if (!studentId || !password) { showAlert(alertEl, 'Please fill in all fields.', 'danger'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const res = await fetch(API + '/api/auth/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ studentId, password })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(alertEl, data.message, 'danger'); return; }
+      token = data.token;
+      currentStudent = data.student;
+      localStorage.setItem('uvToken', token);
+      showPortal();
+    } catch { showAlert(alertEl, 'Network error. Is the server running?', 'danger'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Sign In'; }
+  }
+
+  async function register() {
+    const btn = document.getElementById('reg-btn');
+    const alertEl = document.getElementById('register-alert');
+    const studentId = document.getElementById('reg-id').value.trim();
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const department = document.getElementById('reg-dept').value;
+    const batch = document.getElementById('reg-batch').value.trim();
+    const password = document.getElementById('reg-pass').value;
+    const confirm = document.getElementById('reg-confirm').value;
+
+    if (!studentId || !name || !email || !department || !batch || !password) {
+      showAlert(alertEl, 'Please fill in all fields.', 'danger'); return;
+    }
+    if (password.length < 6) { showAlert(alertEl, 'Password must be at least 6 characters.', 'danger'); return; }
+    if (password !== confirm) { showAlert(alertEl, 'Passwords do not match.', 'danger'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Verifying...';
+
+    try {
+      const res = await fetch(API + '/api/auth/register', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ studentId, name, email, password, department, batch })
+      });
+      const data = await res.json();
+      if (!res.ok) { showAlert(alertEl, data.message, 'danger'); return; }
+      token = data.token;
+      currentStudent = data.student;
+      localStorage.setItem('uvToken', token);
+      showAlert(alertEl, 'Registration successful! Welcome!', 'success');
+      setTimeout(() => showPortal(), 800);
+    } catch { showAlert(alertEl, 'Network error. Is the server running?', 'danger'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Create Account'; }
+  }
+
+  function logout() {
+    token = null; currentStudent = null;
+    localStorage.removeItem('uvToken');
+    showAuth();
+  }
+
+  // ── BALLOTS ──────────────────────────────────────
+  async function loadBallots() {
+    const container = document.getElementById('ballots-container');
+    container.innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
+    try {
+      const res = await apiFetch('/api/ballots');
+      const data = await res.json();
+      allBallots = data.ballots || [];
+      renderBallots();
+    } catch {
+      container.innerHTML = '<div class="alert alert-danger">Failed to load ballots. Check server connection.</div>';
+    }
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    renderBallots();
+  }
+
+  function renderBallots() {
+    const container = document.getElementById('ballots-container');
+    const filtered = allBallots.filter(b => b.status === currentTab);
+
+    if (!filtered.length) {
+      const msgs = { active: 'No active elections right now.', upcoming: 'No upcoming elections scheduled.', closed: 'No past elections found.' };
+      container.innerHTML = `<div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+        <h3>${msgs[currentTab]}</h3>
+        <p>Check back later.</p>
+      </div>`;
+      return;
+    }
+
+    container.innerHTML = '<div class="ballots-grid">' + filtered.map(renderBallotCard).join('') + '</div>';
+  }
+
+  function renderBallotCard(ballot) {
+    const start = new Date(ballot.startTime).toLocaleString('en-BD');
+    const end = new Date(ballot.endTime).toLocaleString('en-BD');
+    const badges = { active: '<span class="badge badge-active"><span class="dot"></span>Live</span>', upcoming: '<span class="badge badge-upcoming">Upcoming</span>', closed: '<span class="badge badge-closed">Closed</span>' };
+    const action = ballot.status === 'active'
+      ? `<button class="btn btn-primary btn-sm" onclick="openVoteModal('${ballot._id}')">Vote Now</button>`
+      : ballot.status === 'closed'
+      ? `<button class="btn btn-outline btn-sm" onclick="openResults('${ballot._id}')">View Results</button>`
+      : `<span style="font-size:0.8rem;color:var(--gray-500)">Starts ${start}</span>`;
+
+    return `<div class="ballot-card">
+      <div class="ballot-card-header">
+        <div class="ballot-org">${ballot.organization}</div>
+        <div class="ballot-title">${ballot.title}</div>
+        ${ballot.description ? `<div class="ballot-desc">${ballot.description}</div>` : ''}
+      </div>
+      <div class="ballot-card-body">
+        <div class="ballot-meta">
+          <span>📅 <strong>Start:</strong> ${start}</span>
+          <span>🔒 <strong>End:</strong> ${end}</span>
+          <span>🏆 <strong>Positions:</strong> ${ballot.ranks.length} ranks</span>
+        </div>
+      </div>
+      <div class="ballot-card-footer">
+        ${badges[ballot.status] || ''}
+        ${action}
+      </div>
+    </div>`;
+  }
+
+  // ── VOTE MODAL ────────────────────────────────────
+  async function openVoteModal(ballotId) {
+    currentSelections = {};
+    const modal = document.getElementById('vote-modal');
+    document.getElementById('modal-body').innerHTML = '<div class="loading-overlay"><div class="spinner" style="border-color:var(--gray-300);border-top-color:var(--primary)"></div></div>';
+    modal.classList.add('open');
+
+    const res = await apiFetch('/api/ballots/' + ballotId);
+    const data = await res.json();
+    currentBallot = data.ballot;
+
+    document.getElementById('modal-title').textContent = currentBallot.title;
+    document.getElementById('modal-org').textContent = currentBallot.organization;
+
+    renderVoteForm(data.ballot.votedRanks || []);
+  }
+
+  function renderVoteForm(votedRanks) {
+    const body = document.getElementById('modal-body');
+    if (!currentBallot.ranks || !currentBallot.ranks.length) {
+      body.innerHTML = '<div class="alert alert-info">No candidates have been added yet.</div>';
+      return;
+    }
+
+    body.innerHTML = currentBallot.ranks.map((rank, rankIndex) => {
+      const rankKey = `r${rankIndex}-${String(rank.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+      const hasVoted = votedRanks.includes(rank.title);
+      return `<div class="rank-section" id="rank-${rankKey}">
+        <div class="rank-title-row">
+          <span class="rank-name">🏅 ${rank.title}</span>
+          ${hasVoted ? '<span class="voted-badge">✓ Voted</span>' : ''}
+        </div>
+        <div class="candidates-list">
+          ${rank.candidates.map((c, candIndex) => `
+            <div class="candidate-card ${hasVoted ? 'disabled' : ''}" id="cand-${rankKey}-${c._id}"
+              onclick="${hasVoted ? '' : `selectCandidate('${rankKey}', '${c._id}', '${rank.title}')`}">
+              <div class="cand-photo">
+                ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+                <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+              </div>
+              <div class="cand-info">
+                <div class="cand-name">${c.name}</div>
+                <div class="cand-id">${c.studentId}</div>
+                ${c.department ? `<div class="cand-dept">${c.department}</div>` : ''}
+                ${c.bio ? `<div class="cand-bio">${c.bio}</div>` : ''}
+              </div>
+              <div class="cand-actions">
+                <button type="button" class="cand-details-btn" onclick="event.stopPropagation(); openCandidateDetails(${rankIndex}, ${candIndex});">Details</button>
+                <div class="radio-circle"><div class="radio-dot"></div></div>
+              </div>
+            </div>`).join('')}
+        </div>
+        ${!hasVoted ? `<button class="btn btn-success btn-sm vote-rank-btn" id="vote-btn-${rankKey}" onclick="castVote('${rankKey}', '${rank.title}')" disabled>
+          Vote for ${rank.title}
+        </button>` : ''}
+      </div>`;
+    }).join('<div class="divider"></div>');
+  }
+
+  function selectCandidate(rankId, candidateId, rankTitle) {
+    // Enforce single selection per rank by clearing all cards in that rank first.
+    const rankSection = document.getElementById('rank-' + rankId);
+    if (!rankSection) return;
+
+    rankSection.querySelectorAll('.candidate-card').forEach(card => {
+      card.classList.remove('selected');
+    });
+
+    const selectedCard = document.getElementById('cand-' + rankId + '-' + candidateId);
+    if (!selectedCard) return;
+
+    selectedCard.classList.add('selected');
+    currentSelections[rankId] = candidateId;
+
+    const voteBtn = document.getElementById('vote-btn-' + rankId);
+    if (voteBtn) voteBtn.disabled = false;
+  }
+
+  async function castVote(rankId, rankTitle) {
+    const candidateId = currentSelections[rankId];
+    if (!candidateId) return;
+
+    const btn = document.getElementById('vote-btn-' + rankId);
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px"></div>';
+
+    try {
+      const res = await apiFetch('/api/vote', {
+        method: 'POST',
+        body: JSON.stringify({ ballotId: currentBallot._id, rankTitle, candidateId })
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.message); btn.disabled = false; btn.textContent = 'Vote for ' + rankTitle; return; }
+
+      // Mark rank as voted
+      const section = document.getElementById('rank-' + rankId);
+      const titleRow = section.querySelector('.rank-title-row');
+      if (!titleRow.querySelector('.voted-badge')) {
+        titleRow.insertAdjacentHTML('beforeend', '<span class="voted-badge">✓ Voted</span>');
+      }
+      section.querySelectorAll('.candidate-card').forEach(c => { c.classList.remove('selected'); c.classList.add('disabled'); c.onclick = null; });
+      const selected = document.getElementById('cand-' + rankId + '-' + candidateId);
+      if (selected) selected.classList.add('voted');
+      btn.remove();
+
+      // Success toast
+      showToast(data.message, 'success');
+    } catch { alert('Network error.'); btn.disabled = false; btn.textContent = 'Vote for ' + rankTitle; }
+  }
+
+  function closeModal() {
+    document.getElementById('vote-modal').classList.remove('open');
+    loadBallots();
+  }
+
+  // ── RESULTS MODAL ─────────────────────────────────
+  async function openResults(ballotId) {
+    const modal = document.getElementById('results-modal');
+    document.getElementById('results-modal-body').innerHTML = '<div class="loading-overlay"><div class="spinner" style="border-color:var(--gray-300);border-top-color:var(--primary)"></div></div>';
+    modal.classList.add('open');
+
+    try {
+      const res = await apiFetch('/api/results/' + ballotId);
+      if (!res.ok) {
+        const data = await res.json();
+        document.getElementById('results-modal-body').innerHTML = `<div class="alert alert-info">${data.message}</div>`;
+        return;
+      }
+      const data = await res.json();
+      document.getElementById('results-modal-title').textContent = data.ballot.title + ' — Results';
+      document.getElementById('results-modal-org').textContent = data.ballot.organization;
+      currentResults = data.results || [];
+      renderResults(data.results);
+    } catch {
+      document.getElementById('results-modal-body').innerHTML = '<div class="alert alert-danger">Failed to load results.</div>';
+    }
+  }
+
+  function renderResults(results) {
+    const body = document.getElementById('results-modal-body');
+    body.innerHTML = results.map((r, rankIndex) => `
+      <div class="result-rank">
+        <div class="result-rank-header">
+          <span class="result-rank-name">🏅 ${r.rank}</span>
+          <span class="result-total">${r.totalVotes} vote${r.totalVotes !== 1 ? 's' : ''}</span>
+        </div>
+        ${r.winner ? `<div class="result-winner">
+          <div class="result-winner-photo">
+            ${r.winner.photo ? `<img src="${r.winner.photo}" alt="${r.winner.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+            <span style="display:${r.winner.photo ? 'none' : 'block'}">${r.winner.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+          </div>
+          <div class="result-winner-info">
+            <div><span class="winner-crown">👑</span><span class="winner-name">${r.winner.name}</span></div>
+            <div class="winner-votes">${r.winner.votes} votes (${r.candidates[0]?.percentage || 0}%)</div>
+          </div>
+        </div>` : '<div class="result-winner" style="background:var(--gray-50)"><span>No votes cast</span></div>'}
+        <div class="result-candidates">
+          ${r.candidates.map((c, i) => `
+            <div class="result-cand ${i===0 && c.votes > 0 ? 'winner-row' : ''}">
+              <div class="result-cand-photo">
+                ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+                <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+              </div>
+              <div class="result-cand-main">
+                <span class="result-cand-name">${c.name}</span>
+                <div class="result-cand-actions">
+                  <button type="button" class="cand-details-btn" onclick="openResultCandidateDetails(${rankIndex}, ${i})">Details</button>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                <div class="progress-bar"><div class="progress-fill" style="width:${c.percentage}%"></div></div>
+                <span class="result-pct">${c.percentage}%</span>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+  }
+
+  function closeResultsModal() {
+    document.getElementById('results-modal').classList.remove('open');
+  }
+
+  function openCandidateDetails(rankIndex, candidateIndex) {
+    const rank = currentBallot?.ranks?.[rankIndex];
+    const candidate = rank?.candidates?.[candidateIndex];
+    openCandidateDetailsCard(rank?.title, candidate);
+  }
+
+  function openResultCandidateDetails(rankIndex, candidateIndex) {
+    const rank = currentResults?.[rankIndex];
+    const candidate = rank?.candidates?.[candidateIndex];
+    openCandidateDetailsCard(rank?.rank, candidate);
+  }
+
+  function openCandidateDetailsCard(rankTitle, candidate) {
+    if (!candidate) return;
+
+    const initials = (candidate.name || 'NA')
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+
+    const body = document.getElementById('candidate-details-body');
+    body.innerHTML = `
+      <div class="details-top">
+        <div class="details-photo">
+          ${candidate.photo ? `<img src="${candidate.photo}" alt="${candidate.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+          <span style="display:${candidate.photo ? 'none' : 'block'}">${initials}</span>
+        </div>
+        <div>
+          <div class="details-name">${candidate.name || 'N/A'}</div>
+          <div class="details-sub">${rankTitle || 'Candidate'}</div>
+        </div>
+      </div>
+      <div class="details-grid">
+        <div class="details-item"><div class="details-label">Student ID</div><div class="details-value">${candidate.studentId || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Department</div><div class="details-value">${candidate.department || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Year</div><div class="details-value">${candidate.year || candidate.batch || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Email</div><div class="details-value">${candidate.email || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Phone</div><div class="details-value">${candidate.phone || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Bio</div><div class="details-value">${candidate.bio || 'N/A'}</div></div>
+      </div>
+    `;
+
+    document.getElementById('candidate-details-modal').classList.add('open');
+  }
+
+  function closeCandidateDetails() {
+    document.getElementById('candidate-details-modal').classList.remove('open');
+  }
+
+  // Close modals on backdrop click
+  document.getElementById('vote-modal').addEventListener('click', e => { if (e.target.id === 'vote-modal') closeModal(); });
+  document.getElementById('results-modal').addEventListener('click', e => { if (e.target.id === 'results-modal') closeResultsModal(); });
+  document.getElementById('candidate-details-modal').addEventListener('click', e => { if (e.target.id === 'candidate-details-modal') closeCandidateDetails(); });
+
+  // ── HELPERS ───────────────────────────────────────
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? 'Hide' : 'Show';
+    btn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+    btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  }
+
+  function apiFetch(url, opts = {}) {
+    return fetch(API + url, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(opts.headers || {}) },
+      body: opts.body
+    });
+  }
+
+  function showAlert(el, msg, type) {
+    el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+    setTimeout(() => el.innerHTML = '', 5000);
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `alert alert-${type}`;
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;min-width:260px;box-shadow:var(--shadow-md);animation:slideIn .3s ease';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+</script>
+</body>
+</html>

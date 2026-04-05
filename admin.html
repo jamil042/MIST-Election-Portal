@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — UniVote</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #2f37a6; --primary-dark: #1d2474; --primary-light: #e8ebff;
+      --success: #3cad27; --success-light: #ebfae8;
+      --danger: #b83232; --danger-light: #fef2f2;
+      --warning: #d97706; --warning-light: #fffbeb;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-500: #6b7280; --gray-700: #374151;
+      --gray-800: #1f2937; --gray-900: #111827;
+      --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,.1);
+      --shadow-md: 0 8px 22px rgba(13, 39, 66, .12);
+      --shadow-lg: 0 18px 45px rgba(13, 39, 66, .2);
+      --mist-gold: #f0ef00;
+      --mist-green: #3cad27;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(240,239,0,.15), transparent 35%),
+        radial-gradient(circle at 90% 84%, rgba(60,173,39,.14), transparent 40%),
+        linear-gradient(155deg, #f8faff 0%, #eef3ff 48%, #edf8ee 100%);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(92deg, #1d2474 0%, #2f37a6 58%, #3cad27 100%);
+      color: white;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 10px 28px rgba(29, 36, 116, .3);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .header-inner { max-width: 1240px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .admin-logo { font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 9px; letter-spacing: .2px; }
+    .admin-badge { background: rgba(240,239,0,.22); color: #fffec7; border: 1px solid rgba(240,239,0,.35); padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: .45px; }
+
+    main { max-width: 1240px; margin: 0 auto; padding: 30px 24px 48px; }
+
+    /* LOGIN */
+    #admin-login { max-width: 430px; margin: 70px auto; background: rgba(255,255,255,.94); border-radius: 20px; box-shadow: var(--shadow-lg); padding: 34px; border: 1px solid rgba(255,255,255,.8); backdrop-filter: blur(8px); }
+    #admin-login h2 { font-size: 1.34rem; font-weight: 800; margin-bottom: 6px; color: var(--gray-900); }
+    #admin-login p { font-size: 0.88rem; color: var(--gray-500); margin-bottom: 22px; }
+
+    /* FORM ELEMENTS */
+    .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    label { font-size: 0.78rem; font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: .4px; }
+    input, select, textarea { border: 1px solid var(--gray-300); border-radius: 8px; padding: 9px 12px; font-size: 0.9rem; color: var(--gray-800); width: 100%; transition: border .2s, box-shadow .2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; transition: all .2s; }
+    .btn-primary { background: linear-gradient(132deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 8px 18px rgba(47,55,166,.28); }
+    .btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-outline { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+    .btn-outline:hover { background: var(--gray-50); border-color: #b9c6dd; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-xs { padding: 3px 10px; font-size: 0.75rem; }
+    .btn-full { width: 100%; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ALERTS */
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 12px; }
+    .alert-success { background: var(--success-light); color: var(--success); border: 1px solid #a7f3d0; }
+    .alert-danger { background: var(--danger-light); color: var(--danger); border: 1px solid #fca5a5; }
+    .alert-info { background: var(--primary-light); color: var(--primary); border: 1px solid #bfdbfe; }
+
+    /* LAYOUT */
+    .panel-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
+    @media(max-width:900px) { .panel-layout { grid-template-columns: 1fr; } }
+
+    .admin-overview {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .overview-card {
+      background: rgba(255,255,255,.86);
+      border: 1px solid #dde3ee;
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+    .overview-label { font-size: .75rem; color: var(--gray-500); font-weight: 700; text-transform: uppercase; letter-spacing: .35px; }
+    .overview-value { font-size: 1.24rem; color: var(--gray-900); font-weight: 800; margin-top: 2px; }
+    @media(max-width:900px) { .admin-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media(max-width:540px) { .admin-overview { grid-template-columns: 1fr; } }
+
+    /* CARD */
+    .card { background: rgba(255,255,255,.92); border-radius: 14px; box-shadow: var(--shadow-md); border: 1px solid #e1e7f0; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #e9edf3; display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
+    .card-body { padding: 20px; }
+    .card-actions { display: flex; align-items: center; gap: 8px; }
+
+    .ballots-toolbar {
+      display: grid;
+      grid-template-columns: 1fr 180px auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .ballots-toolbar input,
+    .ballots-toolbar select { height: 40px; }
+    .ballots-meta {
+      font-size: .78rem;
+      color: var(--gray-500);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .ballots-empty {
+      border: 1px dashed var(--gray-300);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      color: var(--gray-500);
+      font-size: .85rem;
+      background: #fff;
+    }
+    @media(max-width:760px) {
+      .ballots-toolbar { grid-template-columns: 1fr; }
+    }
+
+    /* BALLOT LIST */
+    .ballot-item { border: 1px solid #dce4f0; border-radius: 12px; padding: 15px 16px; margin-bottom: 12px; background: #fff; box-shadow: 0 6px 14px rgba(16, 26, 39, .06); }
+    .ballot-item:hover { border-color: #bfd0f1; box-shadow: 0 10px 20px rgba(16, 26, 39, .08); }
+    .ballot-item-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+    .ballot-item-title { font-weight: 800; font-size: 1rem; color: var(--gray-900); }
+    .ballot-item-org { font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+    .ballot-item-meta { font-size: 0.78rem; color: var(--gray-500); margin-bottom: 10px; }
+    .ballot-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-upcoming { background: #e0f2fe; color: #075985; }
+    .badge-closed { background: var(--gray-100); color: var(--gray-500); }
+    .badge-draft { background: #fef3c7; color: #92400e; }
+
+    /* CREATE FORM */
+    .section-title { font-size: 0.85rem; font-weight: 700; color: var(--gray-700); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* RANKS */
+    .ranks-container { display: flex; flex-direction: column; gap: 10px; }
+    .rank-block { border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+    .rank-block-header { background: var(--gray-50); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.88rem; }
+    .rank-block-body { padding: 12px 14px; }
+    .cand-row { display: grid; grid-template-columns: 1fr 1fr 1fr 110px 50px; gap: 8px; align-items: start; margin-bottom: 10px; }
+    .cand-row input, .cand-row input[type="file"], .cand-row textarea { font-size: 0.82rem; padding: 7px 10px; }
+    .cand-extra-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 4px; }
+    .cand-bio-row { grid-column: 1 / -1; margin-top: 6px; }
+    .cand-bio-input { width: 100%; min-height: 52px; resize: vertical; border: 1px solid var(--gray-300); border-radius: 8px; }
+    .cand-photo-input { position: relative; }
+    .photo-upload-label { display: inline-block; width: 100%; padding: 7px 10px; background: var(--primary-light); border: 1px solid var(--primary); border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: var(--primary); cursor: pointer; transition: all .2s; text-align: center; }
+    .photo-upload-label:hover { background: var(--primary); color: white; }
+    .cand-row input[type="file"] { display: none; }
+    .remove-cand { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; padding: 4px 6px; border-radius: 4px; }
+    .remove-cand:hover { background: var(--danger-light); }
+    .add-cand-btn { background: none; border: 1px dashed var(--gray-300); border-radius: 6px; width: 100%; padding: 7px; font-size: 0.82rem; color: var(--primary); cursor: pointer; transition: all .2s; margin-top: 4px; }
+    .add-cand-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .photo-preview { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid var(--gray-300); background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: var(--gray-500); }
+    .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* RESULTS */
+    .result-rank { background: white; border-radius: 12px; border: 1px solid var(--gray-200); margin-bottom: 16px; overflow: hidden; }
+    .result-rank-header { padding: 14px 18px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+    .result-rank-name { font-weight: 700; font-size: 0.95rem; color: var(--gray-900); }
+    .result-total { font-size: 0.82rem; color: var(--gray-500); }
+    .result-winner { padding: 14px 18px; background: #ecfdf5; border-bottom: 1px solid #a7f3d0; display: flex; align-items: center; gap: 12px; }
+    .winner-photo { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid #7dd3a8; display: flex; align-items: center; justify-content: center; background: #dff8ea; color: #1f8f4b; font-weight: 700; }
+    .winner-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .winner-crown { font-size: 1.3rem; }
+    .winner-name { font-weight: 700; color: var(--gray-900); }
+    .winner-votes { font-size: 0.82rem; color: var(--success); font-weight: 600; }
+    .result-candidates { padding: 12px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .result-cand { display: grid; align-items: center; gap: 10px; grid-template-columns: 46px 130px 1fr 56px; }
+    .result-cand-photo { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gray-300); display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary); font-size: 0.75rem; font-weight: 700; }
+    .result-cand-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .result-cand.winner-row .result-cand-photo { border-color: #7dd3a8; background: #dff8ea; color: #1f8f4b; }
+    .result-cand-name { font-size: 0.84rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width .6s ease; }
+    .result-cand.winner-row .progress-fill { background: var(--success); }
+    .result-pct { font-size: 0.82rem; font-weight: 700; color: var(--gray-600); text-align: right; }
+    .stats-row { display: flex; gap: 16px; margin-bottom: 18px; }
+    .stat-box { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 12px 16px; flex: 1; }
+    .stat-num { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 0.78rem; color: var(--gray-500); margin-top: 2px; }
+    @media(max-width: 700px) {
+      .result-cand { grid-template-columns: 42px 96px 1fr 52px; }
+    }
+
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty { text-align: center; padding: 30px; color: var(--gray-500); font-size: 0.88rem; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.52); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; backdrop-filter: blur(2px); }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: white; border-radius: 16px; width: 100%; max-width: 860px; max-height: 90vh; overflow-y: auto; box-shadow: 0 22px 54px rgba(0,0,0,.28); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 2; }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--gray-500); padding: 4px 8px; border-radius: 4px; }
+    .modal-close:hover { background: var(--gray-100); }
+    .modal-body { padding: 24px; }
+    .divider { height: 1px; background: var(--gray-200); margin: 16px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="admin-logo">
+      MIST Vote <span class="admin-badge">Admin Console</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="/" style="color:rgba(255,255,255,.7);font-size:0.85rem;text-decoration:none">← Student Portal</a>
+      <button class="btn btn-outline btn-sm" onclick="adminLogout()" style="background:rgba(255,255,255,.1);color:white;border-color:rgba(255,255,255,.2)">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ADMIN LOGIN -->
+<div id="admin-login">
+  <h2>🔐 Admin Access</h2>
+  <p>Enter the admin secret key to continue</p>
+  <div id="admin-login-alert"></div>
+  <div class="form-group">
+    <label>Admin Key</label>
+    <input type="password" id="admin-key-input" placeholder="Enter admin key" onkeydown="if(event.key==='Enter')adminLogin()"/>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="adminLogin()">Access Panel</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel" style="display:none">
+  <div class="admin-overview">
+    <div class="overview-card">
+      <div class="overview-label">Total Ballots</div>
+      <div class="overview-value" id="stat-total">0</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-label">Draft</div>
+      <div class="overview-value" id="stat-draft">0</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-label">Live</div>
+      <div class="overview-value" id="stat-active">0</div>
+    </div>
+    <div class="overview-card">
+      <div class="overview-label">Closed</div>
+      <div class="overview-value" id="stat-closed">0</div>
+    </div>
+  </div>
+
+  <div class="panel-layout">
+
+    <!-- LEFT: Ballots list -->
+    <div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <span class="card-title">All Ballots</span>
+          <div class="card-actions">
+            <button class="btn btn-outline btn-sm" onclick="refreshBallots()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ New Ballot</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="ballots-toolbar">
+            <input type="text" id="ballot-search" placeholder="Search by title or organization..."/>
+            <select id="ballot-filter">
+              <option value="all">All Status</option>
+              <option value="draft">Draft</option>
+              <option value="active">Live</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="closed">Closed</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="clearBallotFilters()">Clear</button>
+          </div>
+          <div class="ballots-meta">
+            <span id="ballots-count">0 ballots</span>
+            <span id="ballots-last-updated">Last updated: --</span>
+          </div>
+          <div id="admin-ballots-list">
+            <div class="empty">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Quick stats -->
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Quick Info</span></div>
+        <div class="card-body">
+          <p style="font-size:0.85rem;color:var(--gray-600);line-height:1.6">
+            <strong>Admin key</strong>: set in your <code>.env</code> file as <code>ADMIN_SECRET</code>.<br><br>
+            <strong>Student IDs</strong>: run <code>npm run seed</code> to load valid student IDs from <code>seeds/students.csv</code>.<br><br>
+            <strong>Ballot flow</strong>: Create → Add candidates per rank → Publish → Voting opens automatically at start time.
+          </p>
+          <div class="divider"></div>
+          <p class="section-title">Rank options</p>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span class="badge badge-active">President</span>
+            <span class="badge badge-active">Vice President</span>
+            <span class="badge badge-upcoming">Secretary</span>
+            <span class="badge badge-upcoming">Asst. Secretary</span>
+            <span class="badge badge-draft">Treasurer</span>
+            <span class="badge badge-draft">Asst. Treasurer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<!-- CREATE BALLOT MODAL -->
+<div class="modal-overlay" id="create-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 style="font-size:1rem;font-weight:700">Create New Ballot</h2>
+      <button class="modal-close" onclick="closeCreateModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="create-alert"></div>
+
+      <p class="section-title">Basic Info</p>
+      <div class="two-col">
+        <div class="form-group">
+          <label>Election Title</label>
+          <input type="text" id="b-title" placeholder="e.g. Cyber Security Club Elections 2024"/>
+        </div>
+        <div class="form-group">
+          <label>Organization</label>
+          <input type="text" id="b-org" placeholder="e.g. Cyber Security Club"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description (optional)</label>
+        <textarea id="b-desc" placeholder="Brief description of this election..."></textarea>
+      </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label>Start Time</label>
+          <input type="datetime-local" id="b-start"/>
+        </div>
+        <div class="form-group">
+          <label>End Time</label>
+          <input type="datetime-local" id="b-end"/>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <p class="section-title">Ranks &amp; Candidates</p>
+      <div class="ranks-container" id="ranks-container"></div>
+      <button class="btn btn-outline btn-sm" onclick="addRank()" style="margin-top:10px">+ Add Rank</button>
+
+      <div class="divider"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-outline" onclick="closeCreateModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createBallot()" id="create-ballot-btn">Create Ballot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS MODAL -->
+<div class="modal-overlay" id="results-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="results-title" style="font-size:1rem;font-weight:700">Live Results</h2>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="refreshResults()">↻ Refresh</button>
+        <button class="modal-close" onclick="closeResultsModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="results-modal-body"></div>
+  </div>
+</div>
+
+<script>
+  const API = '';
+  let adminKey = localStorage.getItem('uvAdminKey') || '';
+  let currentResultBallotId = null;
+  let allAdminBallots = [];
+  let lastBallotsRefresh = null;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('ballot-search');
+    const filter = document.getElementById('ballot-filter');
+    if (search) search.addEventListener('input', renderAdminBallots);
+    if (filter) filter.addEventListener('change', renderAdminBallots);
+    if (adminKey) checkAdminAccess();
+  });
+
+  async function adminLogin() {
+    const key = document.getElementById('admin-key-input').value.trim();
+    if (!key) return;
+
+    // Test the key
+    const res = await fetch(API + '/api/ballots/all', { headers: { 'x-admin-key': key } });
+    if (!res.ok) {
+      document.getElementById('admin-login-alert').innerHTML = '<div class="alert alert-danger">Invalid admin key.</div>';
+      return;
+    }
+    adminKey = key;
+    localStorage.setItem('uvAdminKey', adminKey);
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    loadAdminBallots();
+  }
+
+  async function checkAdminAccess() {
+    try {
+      const res = await fetch(API + '/api/ballots/all', { headers: { 'x-admin-key': adminKey } });
+      if (!res.ok) throw new Error();
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+      loadAdminBallots();
+    } catch {
+      adminKey = '';
+      localStorage.removeItem('uvAdminKey');
+    }
+  }
+
+  function adminLogout() {
+    adminKey = '';
+    localStorage.removeItem('uvAdminKey');
+    location.reload();
+  }
+
+  async function loadAdminBallots() {
+    const container = document.getElementById('admin-ballots-list');
+    container.innerHTML = '<div class="empty">Loading...</div>';
+    const res = await adminFetch('/api/ballots/all');
+    const data = await res.json();
+    const ballots = data.ballots || [];
+
+    allAdminBallots = ballots;
+    lastBallotsRefresh = new Date();
+
+    updateOverviewStats(ballots);
+    updateLastUpdatedLabel();
+    renderAdminBallots();
+  }
+
+  function renderAdminBallots() {
+    const container = document.getElementById('admin-ballots-list');
+    const searchVal = (document.getElementById('ballot-search')?.value || '').trim().toLowerCase();
+    const statusVal = document.getElementById('ballot-filter')?.value || 'all';
+
+    let filtered = allAdminBallots;
+    if (statusVal !== 'all') filtered = filtered.filter(b => b.status === statusVal);
+    if (searchVal) {
+      filtered = filtered.filter(b =>
+        (b.title || '').toLowerCase().includes(searchVal) ||
+        (b.organization || '').toLowerCase().includes(searchVal)
+      );
+    }
+
+    const countLabel = document.getElementById('ballots-count');
+    if (countLabel) countLabel.textContent = `${filtered.length} ballot${filtered.length !== 1 ? 's' : ''}`;
+
+    if (!allAdminBallots.length) {
+      container.innerHTML = '<div class="ballots-empty">No ballots yet. Create one to get started.</div>';
+      return;
+    }
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="ballots-empty">No ballots match your current search/filter.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(b => {
+      const badgeCls = { active: 'badge-active', upcoming: 'badge-upcoming', closed: 'badge-closed', draft: 'badge-draft' };
+      const start = new Date(b.startTime).toLocaleString('en-BD');
+      const end = new Date(b.endTime).toLocaleString('en-BD');
+      return `<div class="ballot-item">
+        <div class="ballot-item-header">
+          <div>
+            <div class="ballot-item-org">${b.organization}</div>
+            <div class="ballot-item-title">${b.title}</div>
+          </div>
+          <span class="badge ${badgeCls[b.status]}">${b.status}</span>
+        </div>
+        <div class="ballot-item-meta">📅 ${start} → ${end} | ${b.ranks.length} rank(s)</div>
+        <div class="ballot-item-actions">
+          ${!b.isActive ? `<button class="btn btn-success btn-xs" onclick="publishBallot('${b._id}')">Publish</button>` : ''}
+          <button class="btn btn-outline btn-xs" onclick="viewResults('${b._id}', '${b.title}')">Results</button>
+          ${b.status === 'draft' ? `<button class="btn btn-danger btn-xs" onclick="deleteBallot('${b._id}')">Delete</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function updateLastUpdatedLabel() {
+    const label = document.getElementById('ballots-last-updated');
+    if (!label) return;
+    if (!lastBallotsRefresh) {
+      label.textContent = 'Last updated: --';
+      return;
+    }
+    label.textContent = 'Last updated: ' + lastBallotsRefresh.toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function refreshBallots() {
+    loadAdminBallots();
+  }
+
+  function clearBallotFilters() {
+    const search = document.getElementById('ballot-search');
+    const filter = document.getElementById('ballot-filter');
+    if (search) search.value = '';
+    if (filter) filter.value = 'all';
+    renderAdminBallots();
+  }
+
+  function updateOverviewStats(ballots) {
+    const total = ballots.length;
+    const draft = ballots.filter(b => b.status === 'draft').length;
+    const active = ballots.filter(b => b.status === 'active').length;
+    const closed = ballots.filter(b => b.status === 'closed').length;
+
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-draft').textContent = draft;
+    document.getElementById('stat-active').textContent = active;
+    document.getElementById('stat-closed').textContent = closed;
+  }
+
+  // ── CREATE MODAL ──────────────────────────────────
+  const RANKS = ['President', 'Vice President', 'Secretary', 'Assistant Secretary', 'Treasurer', 'Assistant Treasurer'];
+  let rankBlocks = []; // [{title, candidates:[]}]
+  let uidCounter = 0;
+
+  function makeSafeId(prefix) {
+    uidCounter += 1;
+    return `${prefix}-${Date.now()}-${uidCounter}`;
+  }
+
+  function openCreateModal() {
+    rankBlocks = [];
+    document.getElementById('ranks-container').innerHTML = '';
+    document.getElementById('create-alert').innerHTML = '';
+    // Set default times
+    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    document.getElementById('b-start').value = now.toISOString().slice(0, 16);
+    document.getElementById('b-end').value = end.toISOString().slice(0, 16);
+    document.getElementById('b-title').value = '';
+    document.getElementById('b-org').value = '';
+    document.getElementById('b-desc').value = '';
+
+    // Add all 6 ranks by default
+    RANKS.forEach(r => addRank(r));
+    document.getElementById('create-modal').classList.add('open');
+  }
+
+  function closeCreateModal() {
+    document.getElementById('create-modal').classList.remove('open');
+  }
+
+  function addRank(defaultTitle = '') {
+    const id = makeSafeId('rank');
+    rankBlocks.push({ id, title: defaultTitle, candidates: [] });
+    const container = document.getElementById('ranks-container');
+    const div = document.createElement('div');
+    div.className = 'rank-block';
+    div.id = 'rankblock-' + id;
+    div.innerHTML = `<div class="rank-block-header">
+        <select class="rank-title-sel" style="border:none;background:none;font-weight:600;font-size:0.88rem;padding:0;width:auto">
+          ${RANKS.map(r => `<option ${r===defaultTitle?'selected':''}>${r}</option>`).join('')}
+        </select>
+        <button class="btn-xs btn-danger btn" onclick="removeRank('${id}')" style="padding:2px 8px">✕</button>
+      </div>
+      <div class="rank-block-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 110px 50px;gap:6px;margin-bottom:6px;font-size:0.75rem;color:var(--gray-500);font-weight:600">
+          <span>Full Name</span><span>Student ID</span><span>Department</span><span>Photo</span><span></span>
+        </div>
+        <div class="cands-list-${id}"></div>
+        <button class="add-cand-btn" onclick="addCandidate('${id}')">+ Add Candidate</button>
+      </div>`;
+    container.appendChild(div);
+    // Add one empty candidate row
+    addCandidate(id);
+  }
+
+  function removeRank(id) {
+    rankBlocks = rankBlocks.filter(r => r.id !== id);
+    document.getElementById('rankblock-' + id)?.remove();
+  }
+
+  function addCandidate(rankId) {
+    const cid = makeSafeId('cand');
+    const container = document.querySelector('.cands-list-' + rankId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'cand-row';
+    row.id = 'cand-' + cid;
+    row.innerHTML = `<input type="text" placeholder="Candidate name" class="cand-name-input"/>
+      <input type="text" placeholder="Student ID" class="cand-id-input" style="text-transform:uppercase"/>
+      <input type="text" placeholder="Department" class="cand-dept-input"/>
+      <div class="cand-photo-input">
+        <label class="photo-upload-label" for="photo-${cid}">📷 Photo</label>
+        <input type="file" id="photo-${cid}" class="cand-photo-input-file" accept="image/*" onchange="previewCandidatePhoto('${cid}')"/>
+        <div class="photo-preview" id="photo-preview-${cid}" style="margin-top:4px">—</div>
+      </div>
+      <button class="remove-cand" onclick="document.getElementById('cand-${cid}').remove()">✕</button>
+      <div class="cand-extra-row">
+        <input type="text" placeholder="Year (e.g. 3rd Year)" class="cand-year-input"/>
+        <input type="email" placeholder="Email" class="cand-email-input"/>
+        <input type="text" placeholder="Phone" class="cand-phone-input"/>
+      </div>
+      <div class="cand-bio-row">
+        <textarea placeholder="Bio (short profile, goals, background)" class="cand-bio-input"></textarea>
+      </div>`;
+    row.dataset.candId = cid;
+    container.appendChild(row);
+  }
+
+  function previewCandidatePhoto(candId) {
+    const input = document.getElementById('photo-' + candId);
+    const preview = document.getElementById('photo-preview-' + candId);
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = `<img src="${e.target.result}" alt="preview"/>`;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Failed to read image file.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function createBallot() {
+    const btn = document.getElementById('create-ballot-btn');
+    const alertEl = document.getElementById('create-alert');
+    const title = document.getElementById('b-title').value.trim();
+    const organization = document.getElementById('b-org').value.trim();
+    const description = document.getElementById('b-desc').value.trim();
+    const startTime = document.getElementById('b-start').value;
+    const endTime = document.getElementById('b-end').value;
+
+    if (!title || !organization || !startTime || !endTime) {
+      alertEl.innerHTML = '<div class="alert alert-danger">Please fill title, organization, and time fields.</div>'; return;
+    }
+
+    // Collect ranks with candidates and serialize selected photos to data URLs.
+    const ranks = [];
+    const rankBlocksEls = Array.from(document.querySelectorAll('.rank-block'));
+
+    for (const block of rankBlocksEls) {
+      const rankTitle = block.querySelector('.rank-title-sel').value;
+      const candidates = [];
+      const candidateRows = Array.from(block.querySelectorAll('.cand-row'));
+
+      for (const row of candidateRows) {
+        const name = row.querySelector('.cand-name-input').value.trim();
+        const studentId = row.querySelector('.cand-id-input').value.trim();
+        const dept = row.querySelector('.cand-dept-input').value.trim();
+        const year = row.querySelector('.cand-year-input')?.value.trim() || '';
+        const email = row.querySelector('.cand-email-input')?.value.trim() || '';
+        const phone = row.querySelector('.cand-phone-input')?.value.trim() || '';
+        const bio = row.querySelector('.cand-bio-input')?.value.trim() || '';
+        const photoInput = row.querySelector('input[type="file"]');
+
+        if (!name || !studentId) continue;
+
+        let photo = '';
+        if (photoInput && photoInput.files && photoInput.files[0]) {
+          const file = photoInput.files[0];
+          if (!file.type.startsWith('image/')) {
+            alertEl.innerHTML = '<div class="alert alert-danger">Only image files are allowed for candidate photos.</div>';
+            return;
+          }
+          photo = await fileToDataUrl(file);
+        }
+
+        candidates.push({ name, studentId, department: dept, year, email, phone, bio, photo });
+      }
+
+      if (candidates.length > 0) ranks.push({ title: rankTitle, candidates });
+    }
+
+    if (!ranks.length) {
+      alertEl.innerHTML = '<div class="alert alert-danger">Please add at least one rank with candidates.</div>'; return;
+    }
+
+    btn.disabled = true; 
+    btn.innerHTML = '<div class="spinner"></div> Creating...';
+
+    try {
+      const ballotPayload = { title, organization, description, ranks, startTime, endTime };
+      const res = await adminFetch('/api/ballots', {
+        method: 'POST',
+        body: JSON.stringify(ballotPayload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) { alertEl.innerHTML = `<div class="alert alert-danger">${data.message}</div>`; return; }
+      alertEl.innerHTML = '<div class="alert alert-success">Ballot created! You can now publish it.</div>';
+      setTimeout(() => { closeCreateModal(); loadAdminBallots(); }, 1200);
+    } catch (e) { 
+      console.error(e);
+      alertEl.innerHTML = '<div class="alert alert-danger">Network error.</div>'; 
+    }
+    finally { btn.disabled = false; btn.textContent = 'Create Ballot'; }
+  }
+
+  async function publishBallot(id) {
+    if (!confirm('Publish this ballot? Students will be able to vote once the start time is reached.')) return;
+    const res = await adminFetch('/api/ballots/' + id + '/publish', { method: 'PATCH' });
+    const data = await res.json();
+    if (res.ok) { showToast('Ballot published!', 'success'); loadAdminBallots(); }
+    else alert(data.message);
+  }
+
+  async function deleteBallot(id) {
+    if (!confirm('Delete this ballot? This cannot be undone.')) return;
+    const res = await adminFetch('/api/ballots/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) { showToast('Ballot deleted.'); loadAdminBallots(); }
+    else alert(data.message);
+  }
+
+  // ── RESULTS ───────────────────────────────────────
+  async function viewResults(ballotId, title) {
+    currentResultBallotId = ballotId;
+    document.getElementById('results-title').textContent = 'Results — ' + title;
+    document.getElementById('results-modal-body').innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner" style="margin:0 auto;width:28px;height:28px;border-color:var(--gray-300);border-top-color:var(--primary)"></div></div>';
+    document.getElementById('results-modal').classList.add('open');
+    await fetchResults(ballotId);
+  }
+
+  async function fetchResults(ballotId) {
+    try {
+      const res = await adminFetch('/api/results/' + ballotId + '/live');
+      const data = await res.json();
+      renderAdminResults(data);
+    } catch {
+      document.getElementById('results-modal-body').innerHTML = '<div class="alert alert-danger">Failed to load results.</div>';
+    }
+  }
+
+  async function refreshResults() {
+    if (currentResultBallotId) await fetchResults(currentResultBallotId);
+  }
+
+  function renderAdminResults(data) {
+    const body = document.getElementById('results-modal-body');
+    const totalVoters = data.totalVoters || 0;
+    const totalVotes = data.results?.reduce((a, r) => a + r.totalVotes, 0) || 0;
+
+    body.innerHTML = `<div class="stats-row">
+      <div class="stat-box"><div class="stat-num">${totalVoters}</div><div class="stat-label">Unique voters</div></div>
+      <div class="stat-box"><div class="stat-num">${totalVotes}</div><div class="stat-label">Total votes cast</div></div>
+      <div class="stat-box"><div class="stat-num">${data.results?.length || 0}</div><div class="stat-label">Positions</div></div>
+    </div>` + data.results.map(r => {
+      const winner = r.candidates?.[0] && r.candidates[0].votes > 0 ? r.candidates[0] : null;
+      return `
+      <div class="result-rank">
+        <div class="result-rank-header">
+          <span class="result-rank-name">🏅 ${r.rank}</span>
+          <span class="result-total">${r.totalVotes} vote${r.totalVotes !== 1 ? 's' : ''}</span>
+        </div>
+        ${winner ? `<div class="result-winner">
+          <div class="winner-photo">
+            ${winner.photo ? `<img src="${winner.photo}" alt="${winner.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+            <span style="display:${winner.photo ? 'none' : 'block'}">${winner.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}</span>
+          </div>
+          <span class="winner-crown">👑</span>
+          <div>
+            <div class="winner-name">${winner.name}</div>
+            <div class="winner-votes">${winner.votes} votes (${r.totalVotes > 0 ? Math.round((winner.votes / r.totalVotes) * 100) : 0}%)</div>
+          </div>
+        </div>` : '<div class="result-winner" style="background:var(--gray-50)"><span>No votes cast</span></div>'}
+        <div class="result-candidates">
+          ${(r.candidates || []).map((c, i) => {
+            const pct = r.totalVotes > 0 ? Math.round((c.votes / r.totalVotes) * 100) : 0;
+            return `<div class="result-cand ${i===0 && c.votes>0 ? 'winner-row' : ''}">
+              <div class="result-cand-photo">
+                ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+                <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}</span>
+              </div>
+              <span class="result-cand-name">${c.name}</span>
+              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+              <span class="result-pct">${pct}%</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function closeResultsModal() {
+    document.getElementById('results-modal').classList.remove('open');
+    currentResultBallotId = null;
+  }
+
+  document.getElementById('create-modal').addEventListener('click', e => { if(e.target.id==='create-modal') closeCreateModal(); });
+  document.getElementById('results-modal').addEventListener('click', e => { if(e.target.id==='results-modal') closeResultsModal(); });
+
+  // ── HELPERS ───────────────────────────────────────
+  function adminFetch(url, opts = {}) {
+    return fetch(API + url, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey, ...(opts.headers || {}) },
+      body: opts.body
+    });
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = 'alert alert-' + type;
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;min-width:220px;box-shadow:var(--shadow-md)';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+</script>
+</body>
+</html>
