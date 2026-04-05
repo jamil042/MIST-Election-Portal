@@ -4,3 +4,5 @@ node_modules/
 assets/
 dist/
 build/
+mnt/
+logs/
