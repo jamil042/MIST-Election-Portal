@@ -688,11 +688,12 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Email</label>
+            <label>Official Email</label>
             <div class="input-wrap">
               <span class="input-icon">@</span>
-              <input type="email" id="reg-email" placeholder="your@email.com"/>
+              <input type="text" id="reg-email-preview" placeholder="studentid@student.mist.ac.bd" disabled/>
             </div>
+            <span class="hint">Auto-generated from Student ID and used for registration alert email.</span>
           </div>
           <div class="form-grid two-col">
             <div class="form-group">
@@ -884,13 +885,12 @@
     const alertEl = document.getElementById('register-alert');
     const studentId = document.getElementById('reg-id').value.trim();
     const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
     const department = document.getElementById('reg-dept').value;
     const batch = document.getElementById('reg-batch').value.trim();
     const password = document.getElementById('reg-pass').value;
     const confirm = document.getElementById('reg-confirm').value;
 
-    if (!studentId || !name || !email || !department || !batch || !password) {
+    if (!studentId || !name || !department || !batch || !password) {
       showAlert(alertEl, 'Please fill in all fields.', 'danger'); return;
     }
     if (password.length < 6) { showAlert(alertEl, 'Password must be at least 6 characters.', 'danger'); return; }
@@ -902,7 +902,7 @@
     try {
       const res = await fetch(API + '/api/auth/register', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ studentId, name, email, password, department, batch })
+        body: JSON.stringify({ studentId, name, password, department, batch })
       });
       const data = await res.json();
       if (!res.ok) { showAlert(alertEl, data.message, 'danger'); return; }
@@ -914,6 +914,12 @@
     } catch { showAlert(alertEl, 'Network error. Is the server running?', 'danger'); }
     finally { btn.disabled = false; btn.innerHTML = 'Create Account'; }
   }
+
+  document.getElementById('reg-id').addEventListener('input', (event) => {
+    const normalized = event.target.value.trim().toLowerCase();
+    const preview = document.getElementById('reg-email-preview');
+    preview.value = normalized ? `${normalized}@student.mist.ac.bd` : '';
+  });
 
   function logout() {
     token = null; currentStudent = null;

@@ -1,21 +1,29 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { Student, ValidStudent } = require('./Student');
+const { sendRegistrationAlert } = require('./mailer');
 
 const router = express.Router();
+
+function getOfficialStudentEmail(studentId) {
+  return `${studentId.toLowerCase()}@student.mist.ac.bd`;
+}
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { studentId, name, email, password, department, batch } = req.body;
+    const { studentId, name, password, department, batch } = req.body;
 
-    if (!studentId || !name || !email || !password || !department || !batch) {
+    if (!studentId || !name || !password || !department || !batch) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
+    const normalizedStudentId = studentId.toUpperCase().trim();
+    const officialEmail = getOfficialStudentEmail(normalizedStudentId);
+
     // Step 1: Validate student ID against university records
     const validStudent = await ValidStudent.findOne({
-      studentId: studentId.toUpperCase().trim()
+      studentId: normalizedStudentId
     });
 
     if (!validStudent) {
@@ -32,16 +40,16 @@ router.post('/register', async (req, res) => {
     }
 
     // Step 3: Check email not already used
-    const emailExists = await Student.findOne({ email: email.toLowerCase() });
+    const emailExists = await Student.findOne({ email: officialEmail.toLowerCase() });
     if (emailExists) {
       return res.status(400).json({ message: 'Email is already in use.' });
     }
 
     // Step 4: Create account
     const student = new Student({
-      studentId: studentId.toUpperCase().trim(),
+      studentId: normalizedStudentId,
       name,
-      email: email.toLowerCase(),
+      email: officialEmail.toLowerCase(),
       password,
       department: validStudent.department || department,
       batch: validStudent.batch || batch
@@ -51,9 +59,19 @@ router.post('/register', async (req, res) => {
 
     // Mark as registered in valid students
     await ValidStudent.updateOne(
-      { studentId: studentId.toUpperCase().trim() },
+      { studentId: normalizedStudentId },
       { isRegistered: true }
     );
+
+    try {
+      await sendRegistrationAlert({
+        to: officialEmail,
+        studentName: student.name,
+        studentId: student.studentId
+      });
+    } catch (mailError) {
+      console.warn(`Registration mail failed for ${student.studentId}: ${mailError.message}`);
+    }
 
     // Issue JWT
     const token = jwt.sign(

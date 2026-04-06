@@ -7,6 +7,8 @@ A full-stack voting system for university club elections. Students register usin
 ## Features
 
 - **Student ID validation** — only students in the university database can register
+- **Official email mapping** — account email is auto-mapped as `studentId@student.mist.ac.bd`
+- **Registration alert email** — sends a notification to official edu mail when account is created
 - **Secure authentication** — JWT-based login, bcrypt password hashing
 - **Multi-rank ballots** — 6 positions per ballot (President, VP, Secretary, Asst. Secretary, Treasurer, Asst. Treasurer)
 - **One vote per position** — enforced at both app and database level (unique index)
@@ -35,6 +37,12 @@ cp .env.example .env
 # MONGODB_URI=mongodb://localhost:27017/university_voting
 # JWT_SECRET=some_long_random_string_here
 # ADMIN_SECRET=your_admin_password_here
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_SECURE=false
+# SMTP_USER=your_smtp_username
+# SMTP_PASS=your_smtp_password_or_app_password
+# SMTP_FROM=MIST Vote <no-reply@mist.ac.bd>
 ```
 
 ### 4. Seed valid student IDs
@@ -83,6 +91,8 @@ npm run dev
 1. Open `http://localhost:5000`
 2. Click **Register** → enter your Student ID + details
    - Registration fails if Student ID is not in university records
+   - Official email is auto-generated as `studentId@student.mist.ac.bd`
+   - A registration alert is sent to official edu email after successful account creation
 3. After login, see active elections on the portal
 4. Click **Vote Now** → select one candidate per position → click **Vote for [Position]**
 5. After voting closes, click **View Results** to see winners
