@@ -980,7 +980,6 @@
       <div class="auth-tabs">
         <div class="auth-tab active" onclick="switchAuthTab('login')" role="button" tabindex="0" aria-label="Open login form">Login</div>
         <div class="auth-tab" onclick="switchAuthTab('register')" role="button" tabindex="0" aria-label="Open register form">Register</div>
-        <div class="auth-tab" onclick="switchAuthTab('forgot')" role="button" tabindex="0" aria-label="Open forgot password form">Forgot Password</div>
       </div>
 
       <!-- LOGIN -->
@@ -1356,7 +1355,10 @@
   }
 
   function switchAuthTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')||(i===2&&tab==='forgot')));
+    document.querySelectorAll('.auth-tab').forEach((t) => {
+      const isActive = (tab === 'login' && t.textContent.trim() === 'Login') || (tab === 'register' && t.textContent.trim() === 'Register');
+      t.classList.toggle('active', isActive);
+    });
     document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
     document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
     document.getElementById('forgot-form').style.display = tab==='forgot' ? 'block' : 'none';
