@@ -1,7 +1,8 @@
 const express = require('express');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { Student, ValidStudent } = require('./Student');
-const { sendRegistrationAlert } = require('./mailer');
+const { sendRegistrationAlert, sendPasswordResetEmail } = require('./mailer');
 
 const router = express.Router();
 
@@ -139,6 +140,92 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error. Please try again.' });
+  }
+});
+
+// POST /api/auth/forgot-password — send password reset link to official email
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { studentId } = req.body;
+    if (!studentId) {
+      return res.status(400).json({ message: 'Student ID is required.' });
+    }
+
+    const normalizedStudentId = studentId.toUpperCase().trim();
+    const student = await Student.findOne({ studentId: normalizedStudentId });
+
+    // Do not reveal whether account exists.
+    if (!student) {
+      return res.json({
+        message: 'If your account exists, a password reset link has been sent to your official email.'
+      });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    student.resetPasswordTokenHash = tokenHash;
+    student.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await student.save();
+
+    const appBaseUrl = process.env.APP_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const resetLink = `${appBaseUrl}/?studentId=${encodeURIComponent(student.studentId)}&resetToken=${encodeURIComponent(rawToken)}`;
+
+    await sendPasswordResetEmail({
+      to: student.email,
+      studentName: student.name,
+      studentId: student.studentId,
+      resetLink
+    });
+
+    return res.json({
+      message: 'If your account exists, a password reset link has been sent to your official email.'
+    });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    return res.status(500).json({ message: 'Server error. Please try again.' });
+  }
+});
+
+// POST /api/auth/reset-password — reset password from email link token
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { studentId, token, newPassword, confirmPassword } = req.body;
+
+    if (!studentId || !token || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match.' });
+    }
+
+    const normalizedStudentId = studentId.toUpperCase().trim();
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const student = await Student.findOne({
+      studentId: normalizedStudentId,
+      resetPasswordTokenHash: tokenHash,
+      resetPasswordExpiresAt: { $gt: new Date() }
+    });
+
+    if (!student) {
+      return res.status(400).json({ message: 'Reset link is invalid or expired.' });
+    }
+
+    student.password = newPassword;
+    student.resetPasswordTokenHash = undefined;
+    student.resetPasswordExpiresAt = undefined;
+    await student.save();
+
+    return res.json({ message: 'Password reset successful. You can now sign in.' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return res.status(500).json({ message: 'Server error. Please try again.' });
   }
 });
 

@@ -9,6 +9,7 @@ A full-stack voting system for university club elections. Students register usin
 - **Student ID validation** — only students in the university database can register
 - **Official email mapping** — account email is auto-mapped as `studentId@student.mist.ac.bd`
 - **Registration alert email** — sends a notification to official edu mail when account is created
+- **Forgot password by student ID** — secure email reset link sent to official edu mail
 - **Secure authentication** — JWT-based login, bcrypt password hashing
 - **Multi-rank ballots** — 6 positions per ballot (President, VP, Secretary, Asst. Secretary, Treasurer, Asst. Treasurer)
 - **One vote per position** — enforced at both app and database level (unique index)
@@ -37,6 +38,7 @@ cp .env.example .env
 # MONGODB_URI=mongodb://localhost:27017/university_voting
 # JWT_SECRET=some_long_random_string_here
 # ADMIN_SECRET=your_admin_password_here
+# APP_BASE_URL=http://localhost:5000
 # SMTP_HOST=smtp.gmail.com
 # SMTP_PORT=587
 # SMTP_SECURE=false
@@ -96,6 +98,12 @@ npm run dev
 3. After login, see active elections on the portal
 4. Click **Vote Now** → select one candidate per position → click **Vote for [Position]**
 5. After voting closes, click **View Results** to see winners
+
+### Forgot password flow
+1. On Login card, click **Forgot password?**
+2. Enter only Student ID and submit
+3. System sends reset link to official email (`studentId@student.mist.ac.bd`)
+4. Open the email link and set a new password
 
 ---
 

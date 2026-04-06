@@ -744,6 +744,7 @@
       <div class="auth-tabs">
         <div class="auth-tab active" onclick="switchAuthTab('login')" role="button" tabindex="0" aria-label="Open login form">Login</div>
         <div class="auth-tab" onclick="switchAuthTab('register')" role="button" tabindex="0" aria-label="Open register form">Register</div>
+        <div class="auth-tab" onclick="switchAuthTab('forgot')" role="button" tabindex="0" aria-label="Open forgot password form">Forgot Password</div>
       </div>
 
       <!-- LOGIN -->
@@ -770,6 +771,7 @@
           </div>
           <div class="auth-actions">
             <button class="btn btn-primary btn-full" onclick="login()" id="login-btn">Sign In</button>
+            <p class="auth-foot"><a href="#" onclick="switchAuthTab('forgot'); return false;" style="color:var(--primary);font-weight:700;text-decoration:none">Forgot password?</a></p>
             <p class="auth-foot">New here? Click Register to create your account.</p>
           </div>
         </div>
@@ -844,6 +846,64 @@
           <div class="auth-actions">
             <button class="btn btn-primary btn-full" onclick="register()" id="reg-btn">Create Account</button>
             <p class="auth-foot">Already registered? Switch to Login and continue.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD -->
+      <div class="auth-body" id="forgot-form" style="display:none">
+        <p class="auth-title">Forgot password?</p>
+        <p class="auth-sub">Enter your Student ID to receive a password reset link</p>
+        <p class="auth-note">A reset link will be sent to your official email address.</p>
+        <div id="forgot-alert" role="status" aria-live="polite"></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Student ID</label>
+            <div class="input-wrap">
+              <span class="input-icon">ID</span>
+              <input type="text" id="forgot-id" placeholder="e.g. 202314102" autocomplete="username"/>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <button class="btn btn-primary btn-full" onclick="forgotPassword()" id="forgot-btn">Send Reset Link</button>
+            <p class="auth-foot"><a href="#" onclick="switchAuthTab('login'); return false;" style="color:var(--primary);font-weight:700;text-decoration:none">Back to login</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESET PASSWORD FROM EMAIL LINK -->
+      <div class="auth-body" id="reset-form" style="display:none">
+        <p class="auth-title">Set new password</p>
+        <p class="auth-sub">Set a new password for your account</p>
+        <p class="auth-note">This form is available only via your secure email reset link.</p>
+        <div id="reset-alert" role="status" aria-live="polite"></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Student ID</label>
+            <div class="input-wrap">
+              <span class="input-icon">ID</span>
+              <input type="text" id="reset-id" disabled/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">PW</span>
+              <input type="password" id="reset-pass" placeholder="Min 6 characters"/>
+              <button type="button" class="password-toggle" onclick="togglePassword('reset-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">PW</span>
+              <input type="password" id="reset-confirm" placeholder="Repeat new password"/>
+              <button type="button" class="password-toggle" onclick="togglePassword('reset-confirm', this)" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <button class="btn btn-primary btn-full" onclick="resetPasswordFromLink()" id="reset-btn">Set New Password</button>
+            <p class="auth-foot"><a href="#" onclick="switchAuthTab('login'); clearResetLinkFromUrl(); return false;" style="color:var(--primary);font-weight:700;text-decoration:none">Back to login</a></p>
           </div>
         </div>
       </div>
@@ -1003,14 +1063,31 @@
   let currentRequiredRanks = [];
   let currentTab = 'active';
   let allBallots = [];
+  let resetTokenFromUrl = '';
+  let resetStudentIdFromUrl = '';
 
   // ── INIT ──────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
-    if (token) verifyAndLoad();
-    else showAuth();
+    const resetParams = new URLSearchParams(window.location.search);
+    resetTokenFromUrl = resetParams.get('resetToken') || '';
+    resetStudentIdFromUrl = (resetParams.get('studentId') || '').toUpperCase();
+
+    if (resetTokenFromUrl && resetStudentIdFromUrl) {
+      token = null;
+      localStorage.removeItem('uvToken');
+      showAuth();
+      switchAuthTab('reset');
+      document.getElementById('reset-id').value = resetStudentIdFromUrl;
+    } else if (token) {
+      verifyAndLoad();
+    } else {
+      showAuth();
+    }
 
     document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
     document.getElementById('login-id').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+    document.getElementById('forgot-id').addEventListener('keydown', e => { if(e.key==='Enter') forgotPassword(); });
+    document.getElementById('reset-confirm').addEventListener('keydown', e => { if(e.key==='Enter') resetPasswordFromLink(); });
   });
 
   async function verifyAndLoad() {
@@ -1043,9 +1120,11 @@
   }
 
   function switchAuthTab(tab) {
-    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')||(i===2&&tab==='forgot')));
     document.getElementById('login-form').style.display = tab==='login' ? 'block' : 'none';
     document.getElementById('register-form').style.display = tab==='register' ? 'block' : 'none';
+    document.getElementById('forgot-form').style.display = tab==='forgot' ? 'block' : 'none';
+    document.getElementById('reset-form').style.display = tab==='reset' ? 'block' : 'none';
   }
 
   async function login() {
@@ -1114,6 +1193,101 @@
     const preview = document.getElementById('reg-email-preview');
     preview.value = normalized ? `${normalized}@student.mist.ac.bd` : '';
   });
+
+  async function forgotPassword() {
+    const btn = document.getElementById('forgot-btn');
+    const alertEl = document.getElementById('forgot-alert');
+    const studentId = document.getElementById('forgot-id').value.trim();
+
+    if (!studentId) {
+      showAlert(alertEl, 'Please enter your Student ID.', 'danger');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Sending...';
+
+    try {
+      const res = await fetch(API + '/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(alertEl, data.message || 'Failed to send reset link.', 'danger');
+        return;
+      }
+      showAlert(alertEl, data.message || 'If your account exists, a reset link has been sent.', 'success');
+    } catch {
+      showAlert(alertEl, 'Network error. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Send Reset Link';
+    }
+  }
+
+  async function resetPasswordFromLink() {
+    const btn = document.getElementById('reset-btn');
+    const alertEl = document.getElementById('reset-alert');
+    const newPassword = document.getElementById('reset-pass').value;
+    const confirmPassword = document.getElementById('reset-confirm').value;
+
+    if (!resetStudentIdFromUrl || !resetTokenFromUrl) {
+      showAlert(alertEl, 'Reset link is missing or invalid.', 'danger');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      showAlert(alertEl, 'Password must be at least 6 characters.', 'danger');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showAlert(alertEl, 'Passwords do not match.', 'danger');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Updating...';
+
+    try {
+      const res = await fetch(API + '/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: resetStudentIdFromUrl,
+          token: resetTokenFromUrl,
+          newPassword,
+          confirmPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert(alertEl, data.message || 'Failed to reset password.', 'danger');
+        return;
+      }
+
+      showAlert(alertEl, data.message || 'Password reset successful.', 'success');
+      clearResetLinkFromUrl();
+      setTimeout(() => {
+        document.getElementById('login-id').value = resetStudentIdFromUrl;
+        switchAuthTab('login');
+      }, 900);
+    } catch {
+      showAlert(alertEl, 'Network error. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Set New Password';
+    }
+  }
+
+  function clearResetLinkFromUrl() {
+    resetTokenFromUrl = '';
+    resetStudentIdFromUrl = '';
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
 
   function logout() {
     token = null; currentStudent = null;

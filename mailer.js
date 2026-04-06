@@ -49,7 +49,38 @@ async function sendRegistrationAlert({ to, studentName, studentId }) {
   return { sent: true, messageId: info.messageId };
 }
 
+async function sendPasswordResetEmail({ to, studentName, studentId, resetLink }) {
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: 'SMTP is not configured.' };
+  }
+
+  const transport = buildTransport();
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  const info = await transport.sendMail({
+    from,
+    to,
+    subject: 'MIST Vote Password Reset',
+    text: [
+      `Dear ${studentName},`,
+      '',
+      'A password reset request was received for your MIST Vote account.',
+      `Student ID: ${studentId}`,
+      '',
+      'Use the link below to set a new password (valid for 15 minutes):',
+      resetLink,
+      '',
+      'If you did not request this, you can safely ignore this email.',
+      '',
+      'MIST Election Portal'
+    ].join('\n')
+  });
+
+  return { sent: true, messageId: info.messageId };
+}
+
 module.exports = {
   sendRegistrationAlert,
+  sendPasswordResetEmail,
   isSmtpConfigured
 };
