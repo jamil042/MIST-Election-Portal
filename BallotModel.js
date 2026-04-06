@@ -9,7 +9,9 @@ const candidateSchema = new mongoose.Schema(
     email: { type: String, trim: true, default: '' },
     phone: { type: String, trim: true, default: '' },
     bio: { type: String, trim: true, default: '' },
-    photo: { type: String, trim: true, default: '' }
+    photo: { type: String, trim: true, default: '' },
+    symbolName: { type: String, trim: true, default: '' },
+    symbolImage: { type: String, trim: true, default: '' }
   },
   { _id: true }
 );

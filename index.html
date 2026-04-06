@@ -490,6 +490,29 @@
     .cand-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
     .cand-id { font-size: 0.78rem; color: var(--gray-500); font-weight: 600; }
     .cand-dept { font-size: 0.78rem; color: var(--gray-600); }
+    .cand-symbol {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--gray-700);
+      background: linear-gradient(135deg, #f7f9ff, #eef4ff);
+      border: 1px solid var(--gray-200);
+      border-radius: 999px;
+      padding: 4px 10px;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .cand-symbol-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--gray-300);
+      background: #fff;
+    }
     .cand-bio { font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; font-style: italic; line-height: 1.4; }
     .radio-circle { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--gray-300); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; background: white; }
     .candidate-card.selected .radio-circle, .candidate-card.voted .radio-circle { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 0 4px rgba(47,55,166,.15); }
@@ -576,6 +599,27 @@
     .result-cand-main { min-width: 0; display: grid; gap: 6px; }
     .result-cand-name { font-size: 0.85rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .result-cand-actions { display: flex; align-items: center; gap: 8px; }
+    .result-symbol {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--gray-600);
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 999px;
+      padding: 2px 8px;
+      width: fit-content;
+    }
+    .result-symbol img {
+      width: 16px;
+      height: 16px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--gray-300);
+      background: #fff;
+    }
     .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
     .progress-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width .6s ease; }
     .result-cand.winner-row .progress-fill { background: var(--success); }
@@ -1271,6 +1315,7 @@
                 <div class="cand-name">${c.name}</div>
                 <div class="cand-id">${c.studentId}</div>
                 ${c.department ? `<div class="cand-dept">${c.department}</div>` : ''}
+                ${c.symbolName || c.symbolImage ? `<div class="cand-symbol">${c.symbolImage ? `<img class="cand-symbol-img" src="${c.symbolImage}" alt="${c.symbolName || 'Symbol'}"/>` : ''}<span>${c.symbolName || 'Election Symbol'}</span></div>` : ''}
                 ${c.bio ? `<div class="cand-bio">${c.bio}</div>` : ''}
               </div>
               <div class="cand-actions">
@@ -1416,6 +1461,7 @@
               </div>
               <div class="result-cand-main">
                 <span class="result-cand-name">${c.name}</span>
+                ${c.symbolName || c.symbolImage ? `<span class="result-symbol">${c.symbolImage ? `<img src="${c.symbolImage}" alt="${c.symbolName || 'Symbol'}"/>` : ''}${c.symbolName || 'Symbol'}</span>` : ''}
                 <div class="result-cand-actions">
                   <button type="button" class="cand-details-btn" onclick="openResultCandidateDetails(${rankIndex}, ${i})">Details</button>
                 </div>
@@ -1471,6 +1517,8 @@
         <div class="details-item"><div class="details-label">Student ID</div><div class="details-value">${candidate.studentId || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Department</div><div class="details-value">${candidate.department || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Year</div><div class="details-value">${candidate.year || candidate.batch || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Symbol Name</div><div class="details-value">${candidate.symbolName || 'N/A'}</div></div>
+        <div class="details-item"><div class="details-label">Symbol Image</div><div class="details-value">${candidate.symbolImage ? `<img src="${candidate.symbolImage}" alt="${candidate.symbolName || 'Symbol'}" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--gray-300);object-fit:cover;"/>` : 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Email</div><div class="details-value">${candidate.email || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Phone</div><div class="details-value">${candidate.phone || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Bio</div><div class="details-value">${candidate.bio || 'N/A'}</div></div>

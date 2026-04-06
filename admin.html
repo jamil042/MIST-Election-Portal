@@ -162,7 +162,11 @@
     .rank-block-body { padding: 12px 14px; }
     .cand-row { display: grid; grid-template-columns: 1fr 1fr 1fr 110px 50px; gap: 8px; align-items: start; margin-bottom: 10px; }
     .cand-row input, .cand-row input[type="file"], .cand-row textarea { font-size: 0.82rem; padding: 7px 10px; }
-    .cand-extra-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 4px; }
+    .cand-extra-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-top: 4px; }
+    .cand-symbol-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    .symbol-upload-wrap { display: flex; align-items: center; gap: 8px; }
+    .symbol-preview { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray-300); background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 700; color: var(--gray-500); }
+    .symbol-preview img { width: 100%; height: 100%; object-fit: cover; }
     .cand-bio-row { grid-column: 1 / -1; margin-top: 6px; }
     .cand-bio-input { width: 100%; min-height: 52px; resize: vertical; border: 1px solid var(--gray-300); border-radius: 8px; }
     .cand-photo-input { position: relative; }
@@ -629,6 +633,14 @@
         <input type="text" placeholder="Year (e.g. 3rd Year)" class="cand-year-input"/>
         <input type="email" placeholder="Email" class="cand-email-input"/>
         <input type="text" placeholder="Phone" class="cand-phone-input"/>
+        <input type="text" placeholder="Symbol Name (e.g. Boat)" class="cand-symbol-name-input"/>
+      </div>
+      <div class="cand-symbol-row">
+        <div class="symbol-upload-wrap">
+          <label class="photo-upload-label" for="symbol-${cid}" style="margin:0">🏳️ Symbol</label>
+          <input type="file" id="symbol-${cid}" class="cand-symbol-input-file" accept="image/*" onchange="previewCandidateSymbol('${cid}')" style="display:none"/>
+          <div class="symbol-preview" id="symbol-preview-${cid}">SYM</div>
+        </div>
       </div>
       <div class="cand-bio-row">
         <textarea placeholder="Bio (short profile, goals, background)" class="cand-bio-input"></textarea>
@@ -645,6 +657,19 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         preview.innerHTML = `<img src="${e.target.result}" alt="preview"/>`;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function previewCandidateSymbol(candId) {
+    const input = document.getElementById('symbol-' + candId);
+    const preview = document.getElementById('symbol-preview-' + candId);
+    const file = input.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.innerHTML = `<img src="${e.target.result}" alt="symbol"/>`;
       };
       reader.readAsDataURL(file);
     }
@@ -688,8 +713,10 @@
         const year = row.querySelector('.cand-year-input')?.value.trim() || '';
         const email = row.querySelector('.cand-email-input')?.value.trim() || '';
         const phone = row.querySelector('.cand-phone-input')?.value.trim() || '';
+        const symbolName = row.querySelector('.cand-symbol-name-input')?.value.trim() || '';
         const bio = row.querySelector('.cand-bio-input')?.value.trim() || '';
-        const photoInput = row.querySelector('input[type="file"]');
+        const photoInput = row.querySelector('.cand-photo-input-file');
+        const symbolInput = row.querySelector('.cand-symbol-input-file');
 
         if (!name || !studentId) continue;
 
@@ -703,7 +730,17 @@
           photo = await fileToDataUrl(file);
         }
 
-        candidates.push({ name, studentId, department: dept, year, email, phone, bio, photo });
+        let symbolImage = '';
+        if (symbolInput && symbolInput.files && symbolInput.files[0]) {
+          const file = symbolInput.files[0];
+          if (!file.type.startsWith('image/')) {
+            alertEl.innerHTML = '<div class="alert alert-danger">Only image files are allowed for candidate symbols.</div>';
+            return;
+          }
+          symbolImage = await fileToDataUrl(file);
+        }
+
+        candidates.push({ name, studentId, department: dept, year, email, phone, bio, photo, symbolName, symbolImage });
       }
 
       if (candidates.length > 0) ranks.push({ title: rankTitle, candidates });
