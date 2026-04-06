@@ -5,17 +5,23 @@ const { authMiddleware } = require('./middlewareAuth');
 
 const router = express.Router();
 
-// POST /api/vote — cast a vote for one rank in a ballot
+// POST /api/vote — deprecated single-rank endpoint
 router.post('/', authMiddleware, async (req, res) => {
+  return res.status(405).json({
+    message: 'Single-rank voting is disabled. Submit all rank selections at once using /api/vote/submit-ballot.'
+  });
+});
+
+// POST /api/vote/submit-ballot — submit votes for all remaining ranks at once
+router.post('/submit-ballot', authMiddleware, async (req, res) => {
   try {
-    const { ballotId, rankTitle, candidateId } = req.body;
+    const { ballotId, selections } = req.body;
     const studentId = req.student.studentId;
 
-    if (!ballotId || !rankTitle || !candidateId) {
-      return res.status(400).json({ message: 'ballotId, rankTitle and candidateId are required.' });
+    if (!ballotId || !Array.isArray(selections)) {
+      return res.status(400).json({ message: 'ballotId and selections[] are required.' });
     }
 
-    // 1. Find ballot and verify it's open
     const ballot = await Ballot.findById(ballotId);
     if (!ballot) return res.status(404).json({ message: 'Ballot not found.' });
 
@@ -24,40 +30,63 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Voting is not open for this ballot.' });
     }
 
-    // 2. Find the rank
-    const rank = ballot.ranks.find(r => r.title === rankTitle);
-    if (!rank) return res.status(400).json({ message: `Rank "${rankTitle}" not found in this ballot.` });
+    const existingVotes = await Vote.find({ studentId, ballotId });
+    const alreadyVotedRanks = new Set(existingVotes.map(v => v.rankTitle));
+    const remainingRanks = ballot.ranks.filter(rank => !alreadyVotedRanks.has(rank.title));
 
-    // 3. Find the candidate
-    const candidate = rank.candidates.find(c => c._id.toString() === candidateId);
-    if (!candidate) return res.status(400).json({ message: 'Candidate not found.' });
+    if (!remainingRanks.length) {
+      return res.status(409).json({ message: 'You have already submitted votes for all ranks in this ballot.' });
+    }
 
-    // 4. Check for duplicate vote (also enforced by DB unique index)
-    const existing = await Vote.findOne({ studentId, ballotId, rankTitle });
-    if (existing) {
-      return res.status(409).json({
-        message: `You have already voted for ${rankTitle} in this ballot.`
+    if (selections.length !== remainingRanks.length) {
+      return res.status(400).json({
+        message: `You must select exactly one candidate for every remaining rank (${remainingRanks.length} required).`
       });
     }
 
-    // 5. Save vote
-    const vote = new Vote({
-      studentId,
-      ballotId,
-      rankTitle,
-      candidateId: candidate._id,
-      candidateName: candidate.name
+    const selectionMap = new Map();
+    for (const item of selections) {
+      if (!item || !item.rankTitle || !item.candidateId) {
+        return res.status(400).json({ message: 'Each selection must include rankTitle and candidateId.' });
+      }
+      if (selectionMap.has(item.rankTitle)) {
+        return res.status(400).json({ message: `Duplicate rank selection found for ${item.rankTitle}.` });
+      }
+      selectionMap.set(item.rankTitle, item.candidateId);
+    }
+
+    const voteDocs = [];
+    for (const rank of remainingRanks) {
+      const selectedCandidateId = selectionMap.get(rank.title);
+      if (!selectedCandidateId) {
+        return res.status(400).json({ message: `Missing selection for rank: ${rank.title}` });
+      }
+
+      const candidate = rank.candidates.find(c => c._id.toString() === String(selectedCandidateId));
+      if (!candidate) {
+        return res.status(400).json({ message: `Invalid candidate selected for rank: ${rank.title}` });
+      }
+
+      voteDocs.push({
+        studentId,
+        ballotId,
+        rankTitle: rank.title,
+        candidateId: candidate._id,
+        candidateName: candidate.name
+      });
+    }
+
+    await Vote.insertMany(voteDocs, { ordered: true });
+
+    return res.status(201).json({
+      message: `Successfully submitted votes for ${voteDocs.length} rank${voteDocs.length > 1 ? 's' : ''}.`
     });
-
-    await vote.save();
-
-    res.status(201).json({ message: `Your vote for ${rankTitle} has been recorded!` });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ message: 'You have already voted for this position.' });
+      return res.status(409).json({ message: 'Vote already submitted for one or more ranks in this ballot.' });
     }
-    console.error('Vote error:', err);
-    res.status(500).json({ message: 'Server error.' });
+    console.error('Submit ballot vote error:', err);
+    return res.status(500).json({ message: 'Server error.' });
   }
 });
 

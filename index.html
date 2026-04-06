@@ -495,7 +495,24 @@
     .candidate-card.selected .radio-circle, .candidate-card.voted .radio-circle { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 0 4px rgba(47,55,166,.15); }
     .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: white; display: none; }
     .candidate-card.selected .radio-dot, .candidate-card.voted .radio-dot { display: block; }
-    .vote-rank-btn { margin-top: 14px; }
+    .submit-ballot-wrap {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), #fff);
+      border-top: 1px solid var(--gray-200);
+      margin-top: 18px;
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .submit-ballot-note {
+      font-size: .82rem;
+      color: var(--gray-500);
+      font-weight: 600;
+    }
 
     .details-modal-overlay {
       position: fixed;
@@ -939,6 +956,7 @@
   let currentBallot = null;
   let currentResults = [];
   let currentSelections = {};
+  let currentRequiredRanks = [];
   let currentTab = 'active';
   let allBallots = [];
 
@@ -1205,6 +1223,7 @@
   // ── VOTE MODAL ────────────────────────────────────
   async function openVoteModal(ballotId) {
     currentSelections = {};
+    currentRequiredRanks = [];
     const modal = document.getElementById('vote-modal');
     document.getElementById('modal-body').innerHTML = '<div class="loading-overlay"><div class="spinner" style="border-color:var(--gray-300);border-top-color:var(--primary)"></div></div>';
     modal.classList.add('open');
@@ -1226,9 +1245,15 @@
       return;
     }
 
-    body.innerHTML = currentBallot.ranks.map((rank, rankIndex) => {
+    currentRequiredRanks = [];
+
+    const rankHtml = currentBallot.ranks.map((rank, rankIndex) => {
       const rankKey = `r${rankIndex}-${String(rank.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
       const hasVoted = votedRanks.includes(rank.title);
+      if (!hasVoted) {
+        currentRequiredRanks.push({ rankKey, rankTitle: rank.title });
+      }
+
       return `<div class="rank-section" id="rank-${rankKey}">
         <div class="rank-title-row">
           <span class="rank-name">🏅 ${rank.title}</span>
@@ -1237,7 +1262,7 @@
         <div class="candidates-list">
           ${rank.candidates.map((c, candIndex) => `
             <div class="candidate-card ${hasVoted ? 'disabled' : ''}" id="cand-${rankKey}-${c._id}"
-              onclick="${hasVoted ? '' : `selectCandidate('${rankKey}', '${c._id}', '${rank.title}')`}">
+              onclick="${hasVoted ? '' : `selectCandidate('${rankKey}', '${c._id}')`}">
               <div class="cand-photo">
                 ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
                 <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
@@ -1254,14 +1279,23 @@
               </div>
             </div>`).join('')}
         </div>
-        ${!hasVoted ? `<button class="btn btn-success btn-sm vote-rank-btn" id="vote-btn-${rankKey}" onclick="castVote('${rankKey}', '${rank.title}')" disabled>
-          Vote for ${rank.title}
-        </button>` : ''}
+        ${hasVoted ? '<div class="submit-ballot-note" style="margin-top:10px">Already submitted for this rank.</div>' : ''}
       </div>`;
     }).join('<div class="divider"></div>');
+
+    const allDone = currentRequiredRanks.length === 0;
+    const submitArea = allDone
+      ? `<div class="alert alert-success" style="margin-top:16px">You have already submitted votes for all ranks in this ballot.</div>`
+      : `<div class="submit-ballot-wrap">
+          <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} ranks</div>
+          <button class="btn btn-success" id="submit-ballot-btn" onclick="submitAllVotes()" disabled>Submit All Votes</button>
+        </div>`;
+
+    body.innerHTML = rankHtml + submitArea;
+    updateSubmitBallotState();
   }
 
-  function selectCandidate(rankId, candidateId, rankTitle) {
+  function selectCandidate(rankId, candidateId) {
     // Enforce single selection per rank by clearing all cards in that rank first.
     const rankSection = document.getElementById('rank-' + rankId);
     if (!rankSection) return;
@@ -1275,41 +1309,56 @@
 
     selectedCard.classList.add('selected');
     currentSelections[rankId] = candidateId;
-
-    const voteBtn = document.getElementById('vote-btn-' + rankId);
-    if (voteBtn) voteBtn.disabled = false;
+    updateSubmitBallotState();
   }
 
-  async function castVote(rankId, rankTitle) {
-    const candidateId = currentSelections[rankId];
-    if (!candidateId) return;
+  function updateSubmitBallotState() {
+    const submitBtn = document.getElementById('submit-ballot-btn');
+    const note = document.getElementById('submit-ballot-note');
+    if (!submitBtn || !note) return;
 
-    const btn = document.getElementById('vote-btn-' + rankId);
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px"></div>';
+    const selectedCount = currentRequiredRanks.filter(item => Boolean(currentSelections[item.rankKey])).length;
+    note.textContent = `Selected ${selectedCount}/${currentRequiredRanks.length} ranks`;
+    submitBtn.disabled = selectedCount !== currentRequiredRanks.length;
+  }
+
+  async function submitAllVotes() {
+    const submitBtn = document.getElementById('submit-ballot-btn');
+    if (!submitBtn || !currentBallot) return;
+
+    const selections = currentRequiredRanks.map(item => ({
+      rankTitle: item.rankTitle,
+      candidateId: currentSelections[item.rankKey]
+    }));
+
+    if (selections.some(item => !item.candidateId)) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner" style="width:14px;height:14px"></div> Submitting...';
 
     try {
-      const res = await apiFetch('/api/vote', {
+      const res = await apiFetch('/api/vote/submit-ballot', {
         method: 'POST',
-        body: JSON.stringify({ ballotId: currentBallot._id, rankTitle, candidateId })
+        body: JSON.stringify({ ballotId: currentBallot._id, selections })
       });
+
       const data = await res.json();
-      if (!res.ok) { alert(data.message); btn.disabled = false; btn.textContent = 'Vote for ' + rankTitle; return; }
-
-      // Mark rank as voted
-      const section = document.getElementById('rank-' + rankId);
-      const titleRow = section.querySelector('.rank-title-row');
-      if (!titleRow.querySelector('.voted-badge')) {
-        titleRow.insertAdjacentHTML('beforeend', '<span class="voted-badge">✓ Voted</span>');
+      if (!res.ok) {
+        showToast(data.message || 'Failed to submit votes.', 'danger');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit All Votes';
+        updateSubmitBallotState();
+        return;
       }
-      section.querySelectorAll('.candidate-card').forEach(c => { c.classList.remove('selected'); c.classList.add('disabled'); c.onclick = null; });
-      const selected = document.getElementById('cand-' + rankId + '-' + candidateId);
-      if (selected) selected.classList.add('voted');
-      btn.remove();
 
-      // Success toast
-      showToast(data.message, 'success');
-    } catch { alert('Network error.'); btn.disabled = false; btn.textContent = 'Vote for ' + rankTitle; }
+      showToast(data.message || 'Votes submitted successfully.', 'success');
+      closeModal();
+    } catch {
+      showToast('Network error while submitting votes.', 'danger');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit All Votes';
+      updateSubmitBallotState();
+    }
   }
 
   function closeModal() {

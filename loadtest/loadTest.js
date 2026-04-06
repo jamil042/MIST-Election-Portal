@@ -135,35 +135,35 @@ async function voteForBallot(token, ballot) {
     return { ok: true, skipped: true };
   }
 
-  let success = 0;
-  for (const rank of ballot.ranks) {
-    if (!Array.isArray(rank.candidates) || rank.candidates.length === 0) continue;
+  const selections = ballot.ranks
+    .filter(rank => Array.isArray(rank.candidates) && rank.candidates.length > 0)
+    .map(rank => ({
+      rankTitle: rank.title,
+      candidateId: rank.candidates[0]._id
+    }));
 
-    const candidate = rank.candidates[0];
-    const result = await requestJson(`${baseUrl}/api/vote`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        ballotId: ballot._id,
-        rankTitle: rank.title,
-        candidateId: candidate._id
-      })
-    });
-
-    if (result.status === 201) {
-      success += 1;
-      continue;
-    }
-
-    if (result.status === 409 && /already voted/i.test(result.body?.message || '')) {
-      success += 1;
-      continue;
-    }
-
-    return { ok: false, error: result.body?.message || `HTTP ${result.status}`, success };
+  if (!selections.length) {
+    return { ok: true, skipped: true, votes: 0 };
   }
 
-  return { ok: true, votes: success };
+  const result = await requestJson(`${baseUrl}/api/vote/submit-ballot`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      ballotId: ballot._id,
+      selections
+    })
+  });
+
+  if (result.status === 201) {
+    return { ok: true, votes: selections.length };
+  }
+
+  if (result.status === 409 && /already submitted|already voted/i.test(result.body?.message || '')) {
+    return { ok: true, votes: selections.length };
+  }
+
+  return { ok: false, error: result.body?.message || `HTTP ${result.status}`, success: 0 };
 }
 
 async function runUser(student, ballot) {
