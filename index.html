@@ -726,7 +726,7 @@
         </article>
         <article class="hero-card">
           <h4>Election Integrity</h4>
-          <p>One student, one vote per rank with timeline-based controls and server-side safeguards.</p>
+          <p>One student, one vote per position with timeline-based controls and server-side safeguards.</p>
         </article>
         <article class="hero-card">
           <h4>Results Transparency</h4>
@@ -1254,7 +1254,7 @@
         <div class="ballot-meta">
           <span>📅 <strong>Start:</strong> ${start}</span>
           <span>🔒 <strong>End:</strong> ${end}</span>
-          <span>🏆 <strong>Positions:</strong> ${ballot.ranks.length} ranks</span>
+          <span>🏆 <strong>Positions:</strong> ${ballot.ranks.length} positions</span>
         </div>
       </div>
       <div class="ballot-card-footer">
@@ -1324,15 +1324,15 @@
               </div>
             </div>`).join('')}
         </div>
-        ${hasVoted ? '<div class="submit-ballot-note" style="margin-top:10px">Already submitted for this rank.</div>' : ''}
+        ${hasVoted ? '<div class="submit-ballot-note" style="margin-top:10px">Already submitted for this position.</div>' : ''}
       </div>`;
     }).join('<div class="divider"></div>');
 
     const allDone = currentRequiredRanks.length === 0;
     const submitArea = allDone
-      ? `<div class="alert alert-success" style="margin-top:16px">You have already submitted votes for all ranks in this ballot.</div>`
+        ? `<div class="alert alert-success" style="margin-top:16px">You have already submitted votes for all positions in this ballot.</div>`
       : `<div class="submit-ballot-wrap">
-          <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} ranks</div>
+          <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} positions</div>
           <button class="btn btn-success" id="submit-ballot-btn" onclick="submitAllVotes()" disabled>Submit All Votes</button>
         </div>`;
 
@@ -1363,7 +1363,7 @@
     if (!submitBtn || !note) return;
 
     const selectedCount = currentRequiredRanks.filter(item => Boolean(currentSelections[item.rankKey])).length;
-    note.textContent = `Selected ${selectedCount}/${currentRequiredRanks.length} ranks`;
+    note.textContent = `Selected ${selectedCount}/${currentRequiredRanks.length} positions`;
     submitBtn.disabled = selectedCount !== currentRequiredRanks.length;
   }
 

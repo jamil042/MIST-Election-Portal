@@ -317,10 +317,10 @@
           <p style="font-size:0.85rem;color:var(--gray-600);line-height:1.6">
             <strong>Admin key</strong>: set in your <code>.env</code> file as <code>ADMIN_SECRET</code>.<br><br>
             <strong>Student IDs</strong>: run <code>npm run seed</code> to load valid student IDs from <code>seeds/students.csv</code>.<br><br>
-            <strong>Ballot flow</strong>: Create → Add candidates per rank → Publish → Voting opens automatically at start time.
+            <strong>Ballot flow</strong>: Create → Add candidates per position → Publish → Voting opens automatically at start time.
           </p>
           <div class="divider"></div>
-          <p class="section-title">Rank options</p>
+          <p class="section-title">Position options</p>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
             <span class="badge badge-active">President</span>
             <span class="badge badge-active">Vice President</span>
@@ -375,9 +375,9 @@
       </div>
 
       <div class="divider"></div>
-      <p class="section-title">Ranks &amp; Candidates</p>
+      <p class="section-title">Positions &amp; Candidates</p>
       <div class="ranks-container" id="ranks-container"></div>
-      <button class="btn btn-outline btn-sm" onclick="addRank()" style="margin-top:10px">+ Add Rank</button>
+      <button class="btn btn-outline btn-sm" onclick="addRank()" style="margin-top:10px">+ Add Position</button>
 
       <div class="divider"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end">
@@ -507,7 +507,7 @@
           </div>
           <span class="badge ${badgeCls[b.status]}">${b.status}</span>
         </div>
-        <div class="ballot-item-meta">📅 ${start} → ${end} | ${b.ranks.length} rank(s)</div>
+        <div class="ballot-item-meta">📅 ${start} → ${end} | ${b.ranks.length} position(s)</div>
         <div class="ballot-item-actions">
           ${!b.isActive ? `<button class="btn btn-success btn-xs" onclick="publishBallot('${b._id}')">Publish</button>` : ''}
           <button class="btn btn-outline btn-xs" onclick="viewResults('${b._id}', '${b.title}')">Results</button>
@@ -747,7 +747,7 @@
     }
 
     if (!ranks.length) {
-      alertEl.innerHTML = '<div class="alert alert-danger">Please add at least one rank with candidates.</div>'; return;
+      alertEl.innerHTML = '<div class="alert alert-danger">Please add at least one position with candidates.</div>'; return;
     }
 
     btn.disabled = true; 
