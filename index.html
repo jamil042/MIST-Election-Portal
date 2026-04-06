@@ -411,6 +411,52 @@
     }
     .modal-body { padding: 28px 32px; }
 
+    /* SETTINGS MODAL */
+    .settings-modal-card {
+      max-width: 900px;
+      border: 1px solid var(--gray-200);
+    }
+    .settings-header {
+      background: linear-gradient(135deg, rgba(47,55,166,.07), rgba(58,163,211,.08));
+    }
+    .settings-subtitle {
+      font-size: .82rem;
+      color: var(--gray-500);
+      margin-top: 3px;
+    }
+    .settings-body {
+      display: grid;
+      gap: 16px;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .settings-panel {
+      border: 1px solid var(--gray-200);
+      border-radius: 14px;
+      padding: 16px;
+      background: linear-gradient(180deg, #fff 0%, #fafcff 100%);
+    }
+    .settings-section-title {
+      font-size: 1rem;
+      color: var(--gray-900);
+      margin-bottom: 10px;
+    }
+    .settings-note {
+      font-size: .8rem;
+      color: var(--gray-500);
+      margin-bottom: 10px;
+    }
+    .settings-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid var(--gray-200);
+      padding-top: 14px;
+    }
+
     /* RANK SECTION */
     .rank-section { margin-bottom: 32px; }
     .rank-section:last-child { margin-bottom: 0; }
@@ -542,6 +588,9 @@
       .form-grid.two-col { grid-template-columns: 1fr; }
       .result-cand { grid-template-columns: 110px 1fr 50px; }
       .auth-body { padding: 22px; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .settings-actions { justify-content: stretch; }
+      .settings-actions .btn { flex: 1; }
     }
 
     .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
@@ -752,6 +801,7 @@
     <button class="tab-btn active" onclick="switchTab('active')">Active Elections</button>
     <button class="tab-btn" onclick="switchTab('upcoming')">Upcoming</button>
     <button class="tab-btn" onclick="switchTab('closed')">Past Results</button>
+    <button class="tab-btn" onclick="openSettingsModal()">Settings</button>
   </div>
 
   <div id="ballots-container">
@@ -797,6 +847,88 @@
       <button class="details-modal-close" onclick="closeCandidateDetails()">✕</button>
     </div>
     <div class="details-modal-body" id="candidate-details-body"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal settings-modal-card">
+    <div class="modal-header settings-header">
+      <div>
+        <h2>Student Settings</h2>
+        <div class="settings-subtitle">Update your profile information and password</div>
+      </div>
+      <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+    </div>
+    <div class="modal-body settings-body">
+      <div id="settings-alert" role="status" aria-live="polite"></div>
+
+      <div class="settings-grid">
+        <div class="settings-panel">
+          <h3 class="settings-section-title">Profile</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Student ID</label>
+              <input type="text" id="set-student-id" disabled />
+            </div>
+            <div class="form-group">
+              <label>Official Email</label>
+              <input type="text" id="set-email" disabled />
+            </div>
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="set-name" placeholder="Your full name" />
+            </div>
+            <div class="form-grid two-col">
+              <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="set-department" disabled />
+              </div>
+              <div class="form-group">
+                <label>Year/Batch</label>
+                <input type="text" id="set-batch" placeholder="e.g. 23" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-panel">
+          <h3 class="settings-section-title">Change Password</h3>
+          <p class="settings-note">Leave password fields empty if you only want to update profile info.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Current Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">PW</span>
+                <input type="password" id="set-current-pass" placeholder="Current password" />
+                <button type="button" class="password-toggle" onclick="togglePassword('set-current-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">PW</span>
+                <input type="password" id="set-new-pass" placeholder="Min 6 characters" />
+                <button type="button" class="password-toggle" onclick="togglePassword('set-new-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">PW</span>
+                <input type="password" id="set-confirm-pass" placeholder="Repeat new password" />
+                <button type="button" class="password-toggle" onclick="togglePassword('set-confirm-pass', this)" aria-label="Show password" aria-pressed="false">Show</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn btn-outline" onclick="closeSettingsModal()">Cancel</button>
+        <button class="btn btn-primary" id="settings-save-btn" onclick="saveSettings()">Save Changes</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -925,6 +1057,81 @@
     token = null; currentStudent = null;
     localStorage.removeItem('uvToken');
     showAuth();
+  }
+
+  function openSettingsModal() {
+    if (!currentStudent) return;
+
+    document.getElementById('set-student-id').value = currentStudent.studentId || '';
+    document.getElementById('set-email').value = currentStudent.email || '';
+    document.getElementById('set-name').value = currentStudent.name || '';
+    document.getElementById('set-department').value = currentStudent.department || '';
+    document.getElementById('set-batch').value = currentStudent.batch || '';
+
+    document.getElementById('set-current-pass').value = '';
+    document.getElementById('set-new-pass').value = '';
+    document.getElementById('set-confirm-pass').value = '';
+    document.getElementById('settings-alert').innerHTML = '';
+
+    document.getElementById('settings-modal').classList.add('open');
+  }
+
+  function closeSettingsModal() {
+    document.getElementById('settings-modal').classList.remove('open');
+  }
+
+  async function saveSettings() {
+    const alertEl = document.getElementById('settings-alert');
+    const btn = document.getElementById('settings-save-btn');
+
+    const name = document.getElementById('set-name').value.trim();
+    const batch = document.getElementById('set-batch').value.trim();
+    const currentPassword = document.getElementById('set-current-pass').value;
+    const newPassword = document.getElementById('set-new-pass').value;
+    const confirmNewPassword = document.getElementById('set-confirm-pass').value;
+
+    const payload = {};
+    if (name) payload.name = name;
+    if (batch) payload.batch = batch;
+
+    if (currentPassword || newPassword || confirmNewPassword) {
+      payload.currentPassword = currentPassword;
+      payload.newPassword = newPassword;
+      payload.confirmNewPassword = confirmNewPassword;
+    }
+
+    if (!Object.keys(payload).length) {
+      showAlert(alertEl, 'No changes found.', 'warning');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Saving...';
+
+    try {
+      const res = await apiFetch('/api/auth/settings', {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert(alertEl, data.message || 'Failed to update settings.', 'danger');
+        return;
+      }
+
+      currentStudent = data.student;
+      document.getElementById('nav-student-name').textContent = currentStudent.name + ' (' + currentStudent.studentId + ')';
+      showAlert(alertEl, 'Settings updated successfully.', 'success');
+      showToast('Profile updated successfully.', 'success');
+
+      setTimeout(() => closeSettingsModal(), 800);
+    } catch {
+      showAlert(alertEl, 'Network error. Please try again.', 'danger');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Save Changes';
+    }
   }
 
   // ── BALLOTS ──────────────────────────────────────
@@ -1232,6 +1439,7 @@
   document.getElementById('vote-modal').addEventListener('click', e => { if (e.target.id === 'vote-modal') closeModal(); });
   document.getElementById('results-modal').addEventListener('click', e => { if (e.target.id === 'results-modal') closeResultsModal(); });
   document.getElementById('candidate-details-modal').addEventListener('click', e => { if (e.target.id === 'candidate-details-modal') closeCandidateDetails(); });
+  document.getElementById('settings-modal').addEventListener('click', e => { if (e.target.id === 'settings-modal') closeSettingsModal(); });
 
   // ── HELPERS ───────────────────────────────────────
   function togglePassword(inputId, btn) {

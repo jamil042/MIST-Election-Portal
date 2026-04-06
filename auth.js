@@ -153,4 +153,80 @@ router.get('/me', require('./middlewareAuth').authMiddleware, async (req, res) =
   }
 });
 
+// PATCH /api/auth/settings — update profile and/or password
+router.patch('/settings', require('./middlewareAuth').authMiddleware, async (req, res) => {
+  try {
+    const {
+      name,
+      batch,
+      currentPassword,
+      newPassword,
+      confirmNewPassword
+    } = req.body;
+
+    const student = await Student.findOne({ studentId: req.student.studentId });
+    if (!student) return res.status(404).json({ message: 'Student not found.' });
+
+    const hasProfileUpdate = typeof name === 'string' || typeof batch === 'string';
+    const hasPasswordUpdate = Boolean(newPassword || confirmNewPassword || currentPassword);
+
+    if (!hasProfileUpdate && !hasPasswordUpdate) {
+      return res.status(400).json({ message: 'Nothing to update.' });
+    }
+
+    if (typeof name === 'string') {
+      const trimmedName = name.trim();
+      if (!trimmedName) {
+        return res.status(400).json({ message: 'Name cannot be empty.' });
+      }
+      student.name = trimmedName;
+    }
+
+    if (typeof batch === 'string') {
+      const trimmedBatch = batch.trim();
+      if (!trimmedBatch) {
+        return res.status(400).json({ message: 'Year/Batch cannot be empty.' });
+      }
+      student.batch = trimmedBatch;
+    }
+
+    if (hasPasswordUpdate) {
+      if (!currentPassword || !newPassword || !confirmNewPassword) {
+        return res.status(400).json({ message: 'Current password and new password fields are required.' });
+      }
+
+      const passwordMatches = await student.comparePassword(currentPassword);
+      if (!passwordMatches) {
+        return res.status(400).json({ message: 'Current password is incorrect.' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        return res.status(400).json({ message: 'New passwords do not match.' });
+      }
+
+      student.password = newPassword;
+    }
+
+    await student.save();
+
+    return res.json({
+      message: 'Settings updated successfully.',
+      student: {
+        studentId: student.studentId,
+        name: student.name,
+        email: student.email,
+        department: student.department,
+        batch: student.batch
+      }
+    });
+  } catch (err) {
+    console.error('Settings update error:', err);
+    return res.status(500).json({ message: 'Server error. Please try again.' });
+  }
+});
+
 module.exports = router;
