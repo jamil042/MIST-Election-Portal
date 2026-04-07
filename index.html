@@ -476,6 +476,13 @@
     .candidate-card:hover { border-color: var(--primary); background: linear-gradient(135deg, rgba(47,55,166,.08), rgba(58,163,211,.08)); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.08); }
     .candidate-card.selected { border-color: var(--primary); background: linear-gradient(135deg, var(--primary-light), rgba(69,151,233,.12)); }
     .candidate-card.disabled { opacity: .4; cursor: not-allowed; }
+    .candidate-card.preview-readonly { opacity: 1; cursor: default; }
+    .candidate-card.preview-readonly:hover {
+      border-color: var(--gray-200);
+      background: white;
+      transform: none;
+      box-shadow: none;
+    }
     .candidate-card.voted { border-color: var(--success); background: linear-gradient(135deg, var(--success-light), rgba(60,173,39,.12)); }
     .cand-media-panel {
       width: 122px;
@@ -1499,6 +1506,7 @@
   let currentRequiredRanks = [];
   let currentTab = 'active';
   let allBallots = [];
+  let currentModalMode = 'vote';
   let resetTokenFromUrl = '';
   let resetStudentIdFromUrl = '';
   let countdownTimerId = null;
@@ -1856,7 +1864,7 @@
       ? `<button class="btn btn-primary btn-sm" onclick="openVoteModal('${ballot._id}')">Vote Now</button>`
       : ballot.status === 'closed'
       ? `<button class="btn btn-outline btn-sm" onclick="openResults('${ballot._id}')">View Results</button>`
-      : `<span style="font-size:0.8rem;color:var(--gray-500)">Starts ${start}</span>`;
+      : `<button class="btn btn-outline btn-sm" onclick="openCandidatesPreview('${ballot._id}')">See Candidates</button>`;
 
     return `<div class="ballot-card">
       <div class="ballot-card-header">
@@ -1874,12 +1882,14 @@
       <div class="ballot-card-footer">
         ${badges[ballot.status] || ''}
         ${action}
+        ${ballot.status === 'upcoming' ? `<span style="font-size:0.78rem;color:var(--gray-500)">Starts ${start}</span>` : ''}
       </div>
     </div>`;
   }
 
   // ── VOTE MODAL ────────────────────────────────────
   async function openVoteModal(ballotId) {
+    currentModalMode = 'vote';
     currentSelections = {};
     currentRequiredRanks = [];
     const modal = document.getElementById('vote-modal');
@@ -1893,10 +1903,29 @@
     document.getElementById('modal-title').textContent = currentBallot.title;
     document.getElementById('modal-org').textContent = currentBallot.organization;
 
-    renderVoteForm(data.ballot.votedRanks || []);
+    renderVoteForm(data.ballot.votedRanks || [], { readOnly: false });
   }
 
-  function renderVoteForm(votedRanks) {
+  async function openCandidatesPreview(ballotId) {
+    currentModalMode = 'preview';
+    currentSelections = {};
+    currentRequiredRanks = [];
+    const modal = document.getElementById('vote-modal');
+    document.getElementById('modal-body').innerHTML = '<div class="loading-overlay"><div class="spinner" style="border-color:var(--gray-300);border-top-color:var(--primary)"></div></div>';
+    modal.classList.add('open');
+
+    const res = await apiFetch('/api/ballots/' + ballotId);
+    const data = await res.json();
+    currentBallot = data.ballot;
+
+    document.getElementById('modal-title').textContent = currentBallot.title + ' — Candidate Preview';
+    document.getElementById('modal-org').textContent = currentBallot.organization;
+
+    renderVoteForm([], { readOnly: true });
+  }
+
+  function renderVoteForm(votedRanks, options = {}) {
+    const isReadOnly = Boolean(options.readOnly);
     const body = document.getElementById('modal-body');
     if (!currentBallot.ranks || !currentBallot.ranks.length) {
       body.innerHTML = '<div class="alert alert-info">No candidates have been added yet.</div>';
@@ -1908,19 +1937,19 @@
     const rankHtml = currentBallot.ranks.map((rank, rankIndex) => {
       const rankKey = `r${rankIndex}-${String(rank.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
       const hasVoted = votedRanks.includes(rank.title);
-      if (!hasVoted) {
+      if (!hasVoted && !isReadOnly) {
         currentRequiredRanks.push({ rankKey, rankTitle: rank.title });
       }
 
       return `<div class="rank-section" id="rank-${rankKey}">
         <div class="rank-title-row">
           <span class="rank-name">🏅 ${rank.title}</span>
-          ${hasVoted ? '<span class="voted-badge">✓ Voted</span>' : ''}
+          ${isReadOnly ? '<span class="badge badge-upcoming">Preview</span>' : (hasVoted ? '<span class="voted-badge">✓ Voted</span>' : '')}
         </div>
         <div class="candidates-list">
           ${rank.candidates.map((c, candIndex) => `
-            <div class="candidate-card ${hasVoted ? 'disabled' : ''}" id="cand-${rankKey}-${c._id}"
-              onclick="${hasVoted ? '' : `selectCandidate('${rankKey}', '${c._id}')`}">
+            <div class="candidate-card ${hasVoted ? 'disabled' : (isReadOnly ? 'preview-readonly' : '')}" id="cand-${rankKey}-${c._id}"
+              onclick="${(hasVoted || isReadOnly) ? '' : `selectCandidate('${rankKey}', '${c._id}')`}">
               <div class="cand-media-panel">
                 <div class="cand-photo">
                   ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
@@ -1936,18 +1965,24 @@
                 <button type="button" class="cand-details-btn" onclick="event.stopPropagation(); openCandidateDetails(${rankIndex}, ${candIndex});">Details</button>
               </div>
               <div class="cand-actions">
-                <div class="radio-circle"><div class="radio-dot"></div></div>
+                ${isReadOnly ? '' : '<div class="radio-circle"><div class="radio-dot"></div></div>'}
               </div>
             </div>`).join('')}
         </div>
-        ${hasVoted ? '<div class="submit-ballot-note" style="margin-top:10px">Already submitted for this position.</div>' : ''}
+        ${(!isReadOnly && hasVoted) ? '<div class="submit-ballot-note" style="margin-top:10px">Already submitted for this position.</div>' : ''}
       </div>`;
     }).join('<div class="divider"></div>');
 
     const allDone = currentRequiredRanks.length === 0;
-    const submitArea = allDone
+    let submitArea = '';
+
+    if (isReadOnly) {
+      const start = new Date(currentBallot.startTime).toLocaleString('en-BD');
+      submitArea = `<div class="alert alert-info" style="margin-top:16px">Preview only. Voting starts at ${start}.</div>`;
+    } else {
+      submitArea = allDone
         ? `<div class="alert alert-success" style="margin-top:16px">You have already submitted votes for all positions in this ballot.</div>`
-      : `<div class="submit-ballot-wrap">
+        : `<div class="submit-ballot-wrap">
           <div class="submit-ballot-left">
             <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} positions</div>
             <div class="countdown-pill" aria-live="polite">
@@ -1960,10 +1995,15 @@
           </div>
           <button class="btn btn-success" id="submit-ballot-btn" onclick="submitAllVotes()" disabled>Submit All Votes</button>
         </div>`;
+    }
 
     body.innerHTML = rankHtml + submitArea;
-    startCountdownTimer();
-    updateSubmitBallotState();
+    if (!isReadOnly) {
+      startCountdownTimer();
+      updateSubmitBallotState();
+    } else {
+      stopCountdownTimer();
+    }
   }
 
   function selectCandidate(rankId, candidateId) {
@@ -1999,6 +2039,7 @@
   async function submitAllVotes() {
     const submitBtn = document.getElementById('submit-ballot-btn');
     if (!submitBtn || !currentBallot) return;
+    if (currentModalMode === 'preview') return;
 
     const selections = currentRequiredRanks.map(item => ({
       rankTitle: item.rankTitle,
@@ -2037,6 +2078,7 @@
 
   function closeModal() {
     stopCountdownTimer();
+    currentModalMode = 'vote';
     document.getElementById('vote-modal').classList.remove('open');
     loadBallots();
   }
