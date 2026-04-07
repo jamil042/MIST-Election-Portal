@@ -123,9 +123,8 @@ router.patch('/:id', adminMiddleware, async (req, res) => {
     const ballot = await Ballot.findById(req.params.id);
     if (!ballot) return res.status(404).json({ message: 'Ballot not found.' });
 
-    const now = new Date();
-    if (ballot.isActive && now >= ballot.startTime && now <= ballot.endTime) {
-      return res.status(400).json({ message: 'Cannot edit a ballot while voting is active.' });
+    if (ballot.isActive) {
+      return res.status(400).json({ message: 'Cannot edit a ballot after it has been published.' });
     }
 
     const allowed = ['title', 'organization', 'description', 'ranks', 'startTime', 'endTime'];
