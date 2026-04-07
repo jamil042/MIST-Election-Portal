@@ -2175,6 +2175,11 @@
     const body = document.getElementById('candidate-details-body');
     const hasPhoto = Boolean(candidate.photo);
     const escapedName = (candidate.name || 'Candidate').replace(/'/g, "\\'");
+    const email = typeof candidate.email === 'string' ? candidate.email.trim() : '';
+    const phone = typeof candidate.phone === 'string' ? candidate.phone.trim() : '';
+    const symbolName = typeof candidate.symbolName === 'string' ? candidate.symbolName.trim() : '';
+    const symbolImage = typeof candidate.symbolImage === 'string' ? candidate.symbolImage.trim() : '';
+    const bio = typeof candidate.bio === 'string' ? candidate.bio.trim() : '';
 
     body.innerHTML = `
       <div class="details-top">
@@ -2191,11 +2196,11 @@
         <div class="details-item"><div class="details-label">Student ID</div><div class="details-value">${candidate.studentId || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Department</div><div class="details-value">${candidate.department || 'N/A'}</div></div>
         <div class="details-item"><div class="details-label">Year</div><div class="details-value">${candidate.year || candidate.batch || 'N/A'}</div></div>
-        <div class="details-item"><div class="details-label">Symbol Name</div><div class="details-value">${candidate.symbolName || 'N/A'}</div></div>
-        <div class="details-item"><div class="details-label">Symbol Image</div><div class="details-value">${candidate.symbolImage ? `<img src="${candidate.symbolImage}" alt="${candidate.symbolName || 'Symbol'}" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--gray-300);object-fit:cover;"/>` : 'N/A'}</div></div>
-        <div class="details-item"><div class="details-label">Email</div><div class="details-value">${candidate.email || 'N/A'}</div></div>
-        <div class="details-item"><div class="details-label">Phone</div><div class="details-value">${candidate.phone || 'N/A'}</div></div>
-        <div class="details-item"><div class="details-label">Bio</div><div class="details-value">${candidate.bio || 'N/A'}</div></div>
+        ${symbolName ? `<div class="details-item"><div class="details-label">Symbol Name</div><div class="details-value">${symbolName}</div></div>` : ''}
+        ${symbolImage ? `<div class="details-item"><div class="details-label">Symbol Image</div><div class="details-value"><img src="${symbolImage}" alt="${symbolName || 'Symbol'}" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--gray-300);object-fit:cover;"/></div></div>` : ''}
+        ${email ? `<div class="details-item"><div class="details-label">Email</div><div class="details-value">${email}</div></div>` : ''}
+        ${phone ? `<div class="details-item"><div class="details-label">Phone</div><div class="details-value">${phone}</div></div>` : ''}
+        ${bio ? `<div class="details-item"><div class="details-label">Bio</div><div class="details-value">${bio}</div></div>` : ''}
       </div>
     `;
 
