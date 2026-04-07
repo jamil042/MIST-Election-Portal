@@ -472,30 +472,42 @@
     .rank-name { font-size: 1.1rem; font-weight: 700; color: var(--gray-900); letter-spacing: .3px; }
     .voted-badge { font-size: 0.75rem; background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: var(--success); padding: 4px 12px; border-radius: 20px; font-weight: 700; border: 1px solid #a7f3d0; text-transform: uppercase; letter-spacing: .4px; }
     .candidates-list { display: flex; flex-direction: column; gap: 14px; }
-    .candidate-card { border: 2px solid var(--gray-200); border-radius: 14px; padding: 16px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 14px; background: white; }
+    .candidate-card { border: 2px solid var(--gray-200); border-radius: 14px; padding: 16px; cursor: pointer; transition: all .2s; display: grid; grid-template-columns: 122px 1fr 28px; align-items: start; column-gap: 14px; background: white; }
     .candidate-card:hover { border-color: var(--primary); background: linear-gradient(135deg, rgba(47,55,166,.08), rgba(58,163,211,.08)); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.08); }
     .candidate-card.selected { border-color: var(--primary); background: linear-gradient(135deg, var(--primary-light), rgba(69,151,233,.12)); }
     .candidate-card.disabled { opacity: .4; cursor: not-allowed; }
     .candidate-card.voted { border-color: var(--success); background: linear-gradient(135deg, var(--success-light), rgba(60,173,39,.12)); }
-    .cand-photo { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; overflow: hidden; border: 3px solid var(--gray-200); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0f4ff, #eff6ff); font-weight: 700; font-size: 1.2rem; color: var(--primary); }
+    .cand-media-panel {
+      width: 122px;
+      min-height: 146px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none;
+    }
+    .cand-photo { width: 100%; height: 146px; border-radius: 12px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(47,55,166,.22); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0f4ff, #eff6ff); font-weight: 800; font-size: 1.05rem; color: var(--primary); box-shadow: 0 8px 18px rgba(47,55,166,.12); }
     .candidate-card:hover .cand-photo { border-color: var(--primary); }
     .candidate-card.selected .cand-photo { border-color: var(--primary); }
-    .cand-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .cand-info { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .cand-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; margin-left: 8px; }
+    .cand-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+    .cand-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 4px; align-self: stretch; }
+    .cand-actions { display: flex; align-items: center; justify-content: center; align-self: center; height: 100%; }
     .cand-details-btn {
       border: 1px solid var(--gray-300);
       background: white;
       color: var(--gray-700);
       font-size: 0.75rem;
       font-weight: 700;
-      border-radius: 8px;
-      padding: 5px 10px;
+      border-radius: 10px;
+      padding: 6px 12px;
       cursor: pointer;
       transition: all .2s;
     }
     .cand-details-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
-    .cand-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
+    .cand-name { font-weight: 700; font-size: 1.02rem; color: var(--gray-900); }
     .cand-id { font-size: 0.78rem; color: var(--gray-500); font-weight: 600; }
     .cand-dept { font-size: 0.78rem; color: var(--gray-600); }
     .cand-symbol {
@@ -522,6 +534,10 @@
       background: #fff;
     }
     .cand-bio { font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; font-style: italic; line-height: 1.4; }
+    .cand-info .cand-details-btn {
+      margin-top: auto;
+      width: fit-content;
+    }
     .radio-circle { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--gray-300); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; background: white; }
     .candidate-card.selected .radio-circle, .candidate-card.voted .radio-circle { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 0 4px rgba(47,55,166,.15); }
     .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: white; display: none; }
@@ -539,10 +555,68 @@
       gap: 12px;
       flex-wrap: wrap;
     }
+    .submit-ballot-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      min-width: 0;
+      flex: 1;
+    }
     .submit-ballot-note {
       font-size: .82rem;
       color: var(--gray-500);
       font-weight: 600;
+    }
+    .countdown-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(47,55,166,.16);
+      background: linear-gradient(135deg, rgba(232,235,255,.9), rgba(240,239,0,.14));
+      box-shadow: 0 10px 24px rgba(47,55,166,.08);
+      min-width: 170px;
+    }
+    .countdown-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      font-size: .9rem;
+      font-weight: 800;
+      box-shadow: 0 8px 16px rgba(47,55,166,.22);
+      flex-shrink: 0;
+    }
+    .countdown-copy {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .countdown-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .45px;
+      color: var(--gray-500);
+      font-weight: 700;
+    }
+    .countdown-value {
+      font-size: .98rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+    .countdown-value.urgent {
+      color: var(--danger);
+    }
+    .countdown-value.expired {
+      color: var(--gray-500);
     }
 
     .details-modal-overlay {
@@ -578,8 +652,9 @@
     .details-modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
     .details-modal-body { padding: 18px; display: grid; gap: 14px; }
     .details-top { display: flex; align-items: center; gap: 12px; }
-    .details-photo { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gray-200); display:flex; align-items:center; justify-content:center; background: var(--primary-light); color: var(--primary); font-weight: 800; }
+    .details-photo { width: 88px; height: 112px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(47,55,166,.16); display:flex; align-items:center; justify-content:center; background: var(--primary-light); color: var(--primary); font-weight: 800; box-shadow: 0 10px 20px rgba(47,55,166,.10); }
     .details-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .details-photo.has-image { cursor: zoom-in; }
     .details-name { font-size: 1rem; font-weight: 700; color: var(--gray-900); }
     .details-sub { font-size: .82rem; color: var(--gray-500); }
     .details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -587,13 +662,59 @@
     .details-label { font-size: .72rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 2px; }
     .details-value { font-size: .86rem; font-weight: 600; color: var(--gray-800); word-break: break-word; }
 
+    .image-preview-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 320;
+      background: rgba(8, 12, 24, .86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(2px);
+    }
+    .image-preview-overlay.open { display: flex; }
+    .image-preview-wrap {
+      position: relative;
+      width: min(92vw, 1080px);
+      height: min(92vh, 860px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 24px 60px rgba(0,0,0,.4);
+    }
+    .image-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #0a0f1e;
+    }
+    .image-preview-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 10px;
+      background: rgba(0,0,0,.45);
+      color: white;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .image-preview-close:hover { background: rgba(0,0,0,.65); }
+
     /* RESULTS */
     .result-rank { background: white; border-radius: var(--radius); border: 1px solid var(--gray-200); margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
     .result-rank-header { padding: 16px 20px; background: linear-gradient(90deg, rgba(47,55,166,.04), rgba(60,173,39,.04)); border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
     .result-rank-name { font-weight: 700; font-size: 1rem; color: var(--gray-900); }
     .result-total { font-size: 0.82rem; color: var(--gray-500); background: rgba(0,0,0,.04); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
     .result-winner { padding: 18px 20px; background: linear-gradient(135deg, rgba(60,173,39,.1), rgba(58,163,211,.05)); border-bottom: 2px solid #a7f3d0; display: flex; align-items: center; gap: 16px; }
-    .result-winner-photo { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid var(--success); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ecfdf5, #d1fae5); font-weight: 700; font-size: 1rem; color: var(--success); flex-shrink: 0; }
+    .result-winner-photo { width: 78px; height: 104px; border-radius: 14px; overflow: hidden; border: 2px solid var(--success); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ecfdf5, #d1fae5); font-weight: 700; font-size: 1rem; color: var(--success); flex-shrink: 0; box-shadow: 0 10px 20px rgba(60,173,39,.12); }
     .result-winner-photo img { width: 100%; height: 100%; object-fit: cover; }
     .result-winner-info { flex: 1; }
     .winner-crown { font-size: 1.6rem; display: inline-block; margin-right: 4px; }
@@ -601,8 +722,8 @@
     .winner-votes { font-size: 0.85rem; color: var(--success); font-weight: 600; margin-top: 2px; }
     .result-candidates { padding: 12px 20px; display: flex; flex-direction: column; gap: 12px; }
     .result-cand { display: grid; align-items: center; gap: 12px; grid-template-columns: 60px 1fr 60px; }
-    .result-cand-photo { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid var(--gray-300); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-light), #eff6ff); font-weight: 700; font-size: 0.9rem; color: var(--primary); flex-shrink: 0; }
-    .result-cand-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .result-cand-photo { width: 68px; height: 86px; border-radius: 12px; overflow: hidden; border: 2px solid var(--gray-300); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary-light), #eff6ff); font-weight: 700; font-size: 0.95rem; color: var(--primary); flex-shrink: 0; box-shadow: 0 8px 16px rgba(47,55,166,.08); }
+    .result-cand-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
     .result-cand.winner-row .result-cand-photo { border-color: var(--success); background: linear-gradient(135deg, var(--success-light), #d1fae5); color: var(--success); }
     .result-cand-main { min-width: 0; display: grid; gap: 6px; }
     .result-cand-name { font-size: 0.85rem; font-weight: 600; color: var(--gray-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -815,11 +936,25 @@
       }
       .candidate-card {
         padding: 12px;
+        grid-template-columns: 92px 1fr 24px;
         align-items: flex-start;
       }
+      .cand-media-panel {
+        width: 92px;
+        min-height: 106px;
+        padding: 0;
+      }
       .cand-photo {
-        width: 56px;
-        height: 56px;
+        width: 100%;
+        height: 102px;
+      }
+      .cand-actions {
+        grid-column: auto;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        margin-left: 0;
+        padding-top: 0;
       }
       .cand-name {
         font-size: .92rem;
@@ -831,6 +966,28 @@
         position: sticky;
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
+        padding-top: 12px;
+      }
+      .submit-ballot-left {
+        width: 100%;
+        gap: 10px;
+      }
+      .submit-ballot-note {
+        width: 100%;
+        text-align: center;
+      }
+      .countdown-pill {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+        padding: 10px 12px;
+      }
+      .countdown-copy {
+        flex: 1;
+      }
+      #submit-ballot-btn {
+        width: 100%;
       }
       .submit-ballot-note {
         font-size: .78rem;
@@ -884,9 +1041,34 @@
       }
       .candidate-card {
         gap: 10px;
+        grid-template-columns: 78px 1fr 22px;
+      }
+      .cand-media-panel {
+        width: 78px;
+        min-height: 84px;
+        padding: 0;
+      }
+      .cand-photo {
+        width: 100%;
+        height: 84px;
+        border-width: 2px;
       }
       .cand-symbol {
         font-size: .72rem;
+      }
+      .countdown-pill {
+        gap: 8px;
+      }
+      .countdown-icon {
+        width: 30px;
+        height: 30px;
+        font-size: .8rem;
+      }
+      .countdown-label {
+        font-size: .68rem;
+      }
+      .countdown-value {
+        font-size: .9rem;
       }
     }
 
@@ -993,7 +1175,7 @@
             <label>Student ID</label>
             <div class="input-wrap">
               <span class="input-icon">ID</span>
-              <input type="text" id="login-id" placeholder="e.g. CSE2101001" autocomplete="username"/>
+              <input type="text" id="login-id" placeholder="e.g. 202314000" autocomplete="username"/>
             </div>
           </div>
           <div class="form-group">
@@ -1023,7 +1205,7 @@
             <label>Student ID <span style="color:var(--danger)">*</span></label>
             <div class="input-wrap">
               <span class="input-icon">ID</span>
-              <input type="text" id="reg-id" placeholder="e.g. CSE2101001"/>
+              <input type="text" id="reg-id" placeholder="e.g. 202314000"/>
             </div>
             <span class="hint">Must match university records exactly</span>
           </div>
@@ -1049,8 +1231,19 @@
                 <span class="input-icon">D</span>
                 <select id="reg-dept">
                   <option value="">Select</option>
-                  <option>CSE</option><option>EEE</option><option>BBA</option>
-                  <option>LAW</option><option>ENG</option><option>PHY</option>
+                  <option value="CE">Civil Engineering (CE)</option>
+                  <option value="EWCE">Environmental, Water Resources and Coastal Engineering (EWCE)</option>
+                  <option value="ARCH">Architecture (ARCH)</option>
+                  <option value="PME">Petroleum &amp; Mining Engineering (PME)</option>
+                  <option value="CSE">Computer Science &amp; Engineering (CSE)</option>
+                  <option value="EECE">Electrical, Electronic and Communication Engineering (EECE)</option>
+                  <option value="ME">Mechanical Engineering (ME)</option>
+                  <option value="AE">Aeronautical Engineering (AE)</option>
+                  <option value="NAME">Naval Architecture and Marine Engineering (NAME)</option>
+                  <option value="IPE">Industrial and Production Engineering (IPE)</option>
+                  <option value="NSE">Nuclear Science &amp; Engineering (NSE)</option>
+                  <option value="BME">Biomedical Engineering (BME)</option>
+                  <option value="SH">Science &amp; Humanities (SH)</option>
                 </select>
               </div>
             </div>
@@ -1206,6 +1399,14 @@
   </div>
 </div>
 
+<!-- IMAGE PREVIEW MODAL -->
+<div class="image-preview-overlay" id="image-preview-modal">
+  <div class="image-preview-wrap">
+    <button class="image-preview-close" onclick="closeImagePreview()">✕</button>
+    <img id="image-preview-img" class="image-preview-img" alt="Candidate photo preview"/>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settings-modal">
   <div class="modal settings-modal-card">
@@ -1300,6 +1501,7 @@
   let allBallots = [];
   let resetTokenFromUrl = '';
   let resetStudentIdFromUrl = '';
+  let countdownTimerId = null;
 
   // ── INIT ──────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
@@ -1719,9 +1921,11 @@
           ${rank.candidates.map((c, candIndex) => `
             <div class="candidate-card ${hasVoted ? 'disabled' : ''}" id="cand-${rankKey}-${c._id}"
               onclick="${hasVoted ? '' : `selectCandidate('${rankKey}', '${c._id}')`}">
-              <div class="cand-photo">
-                ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
-                <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+              <div class="cand-media-panel">
+                <div class="cand-photo">
+                  ${c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
+                  <span style="display:${c.photo ? 'none' : 'block'}">${c.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+                </div>
               </div>
               <div class="cand-info">
                 <div class="cand-name">${c.name}</div>
@@ -1729,9 +1933,9 @@
                 ${c.department ? `<div class="cand-dept">${c.department}</div>` : ''}
                 ${c.symbolName || c.symbolImage ? `<div class="cand-symbol">${c.symbolImage ? `<img class="cand-symbol-img" src="${c.symbolImage}" alt="${c.symbolName || 'Symbol'}"/>` : ''}<span>${c.symbolName || 'Election Symbol'}</span></div>` : ''}
                 ${c.bio ? `<div class="cand-bio">${c.bio}</div>` : ''}
+                <button type="button" class="cand-details-btn" onclick="event.stopPropagation(); openCandidateDetails(${rankIndex}, ${candIndex});">Details</button>
               </div>
               <div class="cand-actions">
-                <button type="button" class="cand-details-btn" onclick="event.stopPropagation(); openCandidateDetails(${rankIndex}, ${candIndex});">Details</button>
                 <div class="radio-circle"><div class="radio-dot"></div></div>
               </div>
             </div>`).join('')}
@@ -1744,11 +1948,21 @@
     const submitArea = allDone
         ? `<div class="alert alert-success" style="margin-top:16px">You have already submitted votes for all positions in this ballot.</div>`
       : `<div class="submit-ballot-wrap">
-          <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} positions</div>
+          <div class="submit-ballot-left">
+            <div class="submit-ballot-note" id="submit-ballot-note">Selected 0/${currentRequiredRanks.length} positions</div>
+            <div class="countdown-pill" aria-live="polite">
+              <div class="countdown-icon">⏳</div>
+              <div class="countdown-copy">
+                <span class="countdown-label">Time left</span>
+                <span class="countdown-value" id="ballot-countdown">--:--:--</span>
+              </div>
+            </div>
+          </div>
           <button class="btn btn-success" id="submit-ballot-btn" onclick="submitAllVotes()" disabled>Submit All Votes</button>
         </div>`;
 
     body.innerHTML = rankHtml + submitArea;
+    startCountdownTimer();
     updateSubmitBallotState();
   }
 
@@ -1774,9 +1988,12 @@
     const note = document.getElementById('submit-ballot-note');
     if (!submitBtn || !note) return;
 
+    const endTime = currentBallot?.endTime ? new Date(currentBallot.endTime).getTime() : 0;
+    const isExpired = endTime && Date.now() >= endTime;
+
     const selectedCount = currentRequiredRanks.filter(item => Boolean(currentSelections[item.rankKey])).length;
     note.textContent = `Selected ${selectedCount}/${currentRequiredRanks.length} positions`;
-    submitBtn.disabled = selectedCount !== currentRequiredRanks.length;
+    submitBtn.disabled = isExpired || selectedCount !== currentRequiredRanks.length;
   }
 
   async function submitAllVotes() {
@@ -1819,6 +2036,7 @@
   }
 
   function closeModal() {
+    stopCountdownTimer();
     document.getElementById('vote-modal').classList.remove('open');
     loadBallots();
   }
@@ -1891,6 +2109,47 @@
     document.getElementById('results-modal').classList.remove('open');
   }
 
+  function startCountdownTimer() {
+    stopCountdownTimer();
+
+    const updateCountdown = () => {
+      const countdownEl = document.getElementById('ballot-countdown');
+      if (!countdownEl || !currentBallot?.endTime) return;
+
+      const endTime = new Date(currentBallot.endTime).getTime();
+      const diff = endTime - Date.now();
+
+      if (diff <= 0) {
+        countdownEl.textContent = 'Voting closed';
+        countdownEl.classList.add('expired');
+        countdownEl.classList.remove('urgent');
+        const submitBtn = document.getElementById('submit-ballot-btn');
+        if (submitBtn) submitBtn.disabled = true;
+        return;
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const display = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      countdownEl.textContent = display;
+      countdownEl.classList.toggle('urgent', diff <= 5 * 60 * 1000);
+      countdownEl.classList.remove('expired');
+    };
+
+    updateCountdown();
+    countdownTimerId = setInterval(updateCountdown, 1000);
+  }
+
+  function stopCountdownTimer() {
+    if (countdownTimerId) {
+      clearInterval(countdownTimerId);
+      countdownTimerId = null;
+    }
+  }
+
   function openCandidateDetails(rankIndex, candidateIndex) {
     const rank = currentBallot?.ranks?.[rankIndex];
     const candidate = rank?.candidates?.[candidateIndex];
@@ -1914,9 +2173,12 @@
       .slice(0, 2);
 
     const body = document.getElementById('candidate-details-body');
+    const hasPhoto = Boolean(candidate.photo);
+    const escapedName = (candidate.name || 'Candidate').replace(/'/g, "\\'");
+
     body.innerHTML = `
       <div class="details-top">
-        <div class="details-photo">
+        <div class="details-photo ${hasPhoto ? 'has-image' : ''}" ${hasPhoto ? `onclick="openImagePreview('${candidate.photo}', '${escapedName}')"` : ''}>
           ${candidate.photo ? `<img src="${candidate.photo}" alt="${candidate.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>` : ''}
           <span style="display:${candidate.photo ? 'none' : 'block'}">${initials}</span>
         </div>
@@ -1944,11 +2206,37 @@
     document.getElementById('candidate-details-modal').classList.remove('open');
   }
 
+  function openImagePreview(src, altText) {
+    const modal = document.getElementById('image-preview-modal');
+    const img = document.getElementById('image-preview-img');
+    if (!modal || !img || !src) return;
+
+    img.src = src;
+    img.alt = altText || 'Candidate photo preview';
+    modal.classList.add('open');
+  }
+
+  function closeImagePreview() {
+    const modal = document.getElementById('image-preview-modal');
+    const img = document.getElementById('image-preview-img');
+    if (modal) modal.classList.remove('open');
+    if (img) {
+      img.removeAttribute('src');
+      img.alt = 'Candidate photo preview';
+    }
+  }
+
   // Close modals on backdrop click
   document.getElementById('vote-modal').addEventListener('click', e => { if (e.target.id === 'vote-modal') closeModal(); });
   document.getElementById('results-modal').addEventListener('click', e => { if (e.target.id === 'results-modal') closeResultsModal(); });
   document.getElementById('candidate-details-modal').addEventListener('click', e => { if (e.target.id === 'candidate-details-modal') closeCandidateDetails(); });
   document.getElementById('settings-modal').addEventListener('click', e => { if (e.target.id === 'settings-modal') closeSettingsModal(); });
+  document.getElementById('image-preview-modal').addEventListener('click', e => { if (e.target.id === 'image-preview-modal') closeImagePreview(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeImagePreview();
+    }
+  });
 
   // ── HELPERS ───────────────────────────────────────
   function togglePassword(inputId, btn) {
